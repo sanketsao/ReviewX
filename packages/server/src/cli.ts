@@ -11,6 +11,8 @@ interface Args {
   share?: boolean;
   inbox?: boolean;
   dataDir?: string;
+  storage?: "file" | "sqlite";
+  sqlitePath?: string;
   help?: boolean;
 }
 
@@ -23,6 +25,8 @@ function parse(argv: string[]): Args {
     else if (a === "--share" || a === "-s") args.share = true;
     else if (a === "--inbox") args.inbox = true;
     else if (a === "--data-dir") args.dataDir = argv[++i];
+    else if (a === "--storage") args.storage = argv[++i] as Args["storage"];
+    else if (a === "--sqlite-path") args.sqlitePath = argv[++i];
     else if (a === "--help" || a === "-h") args.help = true;
     else if (!a.startsWith("-")) args.dir = a;
   }
@@ -42,7 +46,11 @@ Options:
   -s, --share        Open a cloudflared public URL (no reviewer install)
       --inbox        Multi-project feedback inbox for the CDN snippet
       --data-dir <d> Where inbox data lives (default ./.protofeedback-inbox)
+      --storage <e>  Inbox storage engine: file (default) | sqlite
+      --sqlite-path <f>  SQLite DB file (default <data-dir>/reviewx.sqlite)
   -h, --help         Show this help
+
+Env (inbox): REVIEWX_STORAGE=file|sqlite, REVIEWX_SQLITE_PATH=<file>
 `;
 
 async function main() {
@@ -53,12 +61,19 @@ async function main() {
   }
 
   if (args.inbox) {
+    const storage = (args.storage ?? process.env.REVIEWX_STORAGE) as
+      | "file"
+      | "sqlite"
+      | undefined;
+    const sqlitePath = args.sqlitePath ?? process.env.REVIEWX_SQLITE_PATH;
     const inbox = await createInbox({
       dataDir: args.dataDir ? path.resolve(args.dataDir) : undefined,
       port: args.port,
+      storage: storage === "sqlite" ? "sqlite" : storage === "file" ? "file" : undefined,
+      sqlitePath: sqlitePath ? path.resolve(sqlitePath) : undefined,
     });
     process.stdout.write(
-      `\n  ProtoFeedback inbox ready\n  Endpoint: ${inbox.url}\n` +
+      `\n  ReviewX inbox ready  [storage: ${storage === "sqlite" ? "sqlite" : "file"}]\n  Endpoint: ${inbox.url}\n` +
         `  Reviewer copy (anyone can leave feedback):\n` +
         `    <script src="…/reviewx@1" data-reviewx data-endpoint="${inbox.url}" data-project="my-proto"></script>\n` +
         `  Author copy (resolve/edit/export — keep the token private):\n` +

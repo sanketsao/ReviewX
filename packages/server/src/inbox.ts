@@ -1,7 +1,8 @@
 import * as http from "http";
 import * as path from "path";
 import { promises as fs } from "fs";
-import { Store } from "./store";
+import type { StorageAdapter } from "./store";
+import { createStorageProvider, type StorageBackend } from "./storage";
 import { buildXlsx } from "./xlsx";
 import type { Feedback, Settings, TourStep } from "./types";
 
@@ -12,6 +13,10 @@ export interface InboxOptions {
   host?: string;
   /** Max write requests (POST/PATCH/PUT) per IP per minute. Default 60. */
   writeRateLimit?: number;
+  /** Persistence engine: "file" (default) or "sqlite" (single DB file). */
+  storage?: StorageBackend;
+  /** SQLite database path (defaults to <dataDir>/reviewx.sqlite). */
+  sqlitePath?: string;
 }
 
 export interface RunningInbox {
@@ -71,17 +76,14 @@ export async function createInbox(opts: InboxOptions = {}): Promise<RunningInbox
   const dataRoot = path.resolve(opts.dataDir ?? path.join(process.cwd(), ".protofeedback-inbox"));
   const writeLimit = opts.writeRateLimit ?? 60;
 
-  // One Store per project, created lazily and cached for the process lifetime.
-  const stores = new Map<string, Store>();
-  const storeFor = (project: unknown): Store => {
-    const id = safeProject(project);
-    let s = stores.get(id);
-    if (!s) {
-      s = new Store(path.join(dataRoot, id));
-      stores.set(id, s);
-    }
-    return s;
-  };
+  // Pluggable storage: file (JSON per project) or sqlite (one DB). Each project
+  // gets its own adapter, cached inside the provider for the process lifetime.
+  const storage = createStorageProvider({
+    backend: opts.storage,
+    dataDir: dataRoot,
+    sqlitePath: opts.sqlitePath,
+  });
+  const storeFor = (project: unknown): StorageAdapter => storage.for(safeProject(project));
 
   // --- Per-project write token (trust-on-first-use) -----------------------
   // A project is "open" until someone presents a token; the first tokened
@@ -123,7 +125,7 @@ export async function createInbox(opts: InboxOptions = {}): Promise<RunningInbox
     projectRaw: unknown,
     token: string,
     privileged: boolean
-  ): Promise<{ ok: true; store: Store } | { ok: false; status: number; error: string }> {
+  ): Promise<{ ok: true; store: StorageAdapter } | { ok: false; status: number; error: string }> {
     const id = safeProject(projectRaw);
     let stored = await loadToken(id);
     if (!stored && token) {
@@ -186,7 +188,7 @@ export async function createInbox(opts: InboxOptions = {}): Promise<RunningInbox
     const token = tokenOf(req, url);
 
     if (p === "/" || p === "/health") {
-      sendJson(res, 200, { ok: true, projects: stores.size });
+      sendJson(res, 200, { ok: true, storage: storage.label });
       return;
     }
 
@@ -356,6 +358,9 @@ export async function createInbox(opts: InboxOptions = {}): Promise<RunningInbox
     server,
     url: `http://${host}:${port}`,
     port,
-    close: () => new Promise<void>((resolve) => server.close(() => resolve())),
+    close: () =>
+      new Promise<void>((resolve) =>
+        server.close(() => storage.close().then(resolve, resolve))
+      ),
   };
 }

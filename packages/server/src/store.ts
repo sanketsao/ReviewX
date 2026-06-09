@@ -6,11 +6,28 @@ import type { Feedback, Reply, Settings, TourStep } from "./types";
 const DEFAULT_SETTINGS: Settings = { autoStartTour: true };
 
 /**
+ * Persistence contract for one project's feedback, tours, and settings.
+ * The inbox and local server talk to this interface, not a concrete store, so
+ * the backing engine (local files, SQLite, or a future hosted DB) is swappable
+ * — the enabler for self-hosted "bring-your-own-database" deployments.
+ */
+export interface StorageAdapter {
+  listFeedback(): Promise<Feedback[]>;
+  addFeedback(input: Omit<Feedback, "id" | "createdAt" | "status">): Promise<Feedback>;
+  patchFeedback(id: string, patch: Partial<Pick<Feedback, "status" | "text">>): Promise<Feedback | null>;
+  addReply(id: string, input: { author: string; text: string }): Promise<Feedback | null>;
+  listTour(): Promise<TourStep[]>;
+  saveTour(steps: TourStep[]): Promise<TourStep[]>;
+  getSettings(): Promise<Settings>;
+  saveSettings(patch: Partial<Settings>): Promise<Settings>;
+}
+
+/**
  * File-backed store for tours + feedback under <dataDir>/.protofeedback/.
  * Writes are serialized through a per-store promise chain so concurrent
  * requests in this process cannot interleave and corrupt the JSON files.
  */
-export class Store {
+export class Store implements StorageAdapter {
   private dir: string;
   private feedbackFile: string;
   private tourFile: string;
