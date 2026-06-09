@@ -1,0 +1,12 @@
+.git
+node_modules
+**/node_modules
+**/dist
+**/out
+*.vsix
+*.log
+.DS_Store
+.claude
+.protofeedback
+**/.protofeedback
+.protofeedback-inbox

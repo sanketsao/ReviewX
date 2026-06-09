@@ -13,10 +13,12 @@ export interface InboxOptions {
   host?: string;
   /** Max write requests (POST/PATCH/PUT) per IP per minute. Default 60. */
   writeRateLimit?: number;
-  /** Persistence engine: "file" (default) or "sqlite" (single DB file). */
+  /** Persistence engine: "file" (default), "sqlite", or "postgres". */
   storage?: StorageBackend;
   /** SQLite database path (defaults to <dataDir>/reviewx.sqlite). */
   sqlitePath?: string;
+  /** Postgres connection string (required when storage = "postgres"). */
+  databaseUrl?: string;
 }
 
 export interface RunningInbox {
@@ -78,10 +80,11 @@ export async function createInbox(opts: InboxOptions = {}): Promise<RunningInbox
 
   // Pluggable storage: file (JSON per project) or sqlite (one DB). Each project
   // gets its own adapter, cached inside the provider for the process lifetime.
-  const storage = createStorageProvider({
+  const storage = await createStorageProvider({
     backend: opts.storage,
     dataDir: dataRoot,
     sqlitePath: opts.sqlitePath,
+    databaseUrl: opts.databaseUrl,
   });
   const storeFor = (project: unknown): StorageAdapter => storage.for(safeProject(project));
 
