@@ -1,0 +1,11 @@
+{
+  "name": "@protofeedback/overlay",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Injected overlay: tour + feedback modes, mounted in Shadow DOM",
+  "main": "dist/overlay.js",
+  "scripts": {
+    "build": "node build.mjs",
+    "typecheck": "tsc --noEmit"
+  }
+}

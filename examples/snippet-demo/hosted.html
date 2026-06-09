@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ReviewX snippet — hosted inbox</title>
+    <style>
+      :root { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+      body { margin: 0; background: #f3f4f6; color: #111827; }
+      .wrap { max-width: 760px; margin: 0 auto; padding: 48px 24px 96px; }
+      h1 { font-size: 36px; margin: 0 0 8px; }
+      .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 24px; margin: 16px 0; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1 id="title">HostedCo</h1>
+      <p id="tagline">Snippet wired to a cross-origin hosted inbox — feedback is shared and persistent.</p>
+      <div class="card" id="card-hero"><h2>Hero</h2><p>Feedback here lands on the server, not in this browser.</p></div>
+      <div class="card" id="card-footer"><h2>Footer</h2><p>Reload or open elsewhere and the comments are still here.</p></div>
+    </div>
+
+    <script
+      src="/packages/overlay/dist/reviewx.js"
+      data-reviewx
+      data-role="author"
+      data-project="hosted-demo"
+      data-endpoint="http://127.0.0.1:4400"
+      data-token="hosted-demo-secret"
+    ></script>
+  </body>
+</html>

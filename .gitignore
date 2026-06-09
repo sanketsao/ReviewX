@@ -1,0 +1,14 @@
+node_modules/
+dist/
+out/
+*.vsix
+.DS_Store
+*.log
+
+# Local agent / editor config
+.claude/
+
+# Feedback + tour data written into prototypes at runtime
+.protofeedback/
+**/.protofeedback/
+.protofeedback-inbox/

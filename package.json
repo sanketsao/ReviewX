@@ -1,0 +1,24 @@
+{
+  "name": "protofeedback-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Share vibe-coded prototypes for tours and UI feedback without cloning a repo",
+  "workspaces": [
+    "packages/overlay",
+    "packages/reviewx",
+    "packages/server",
+    "packages/vscode-extension"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "build:overlay": "npm run build -w @protofeedback/overlay",
+    "build:snippet": "npm run build -w reviewx",
+    "build:server": "npm run build -w @protofeedback/server",
+    "test": "npm run test --workspaces --if-present",
+    "pf": "node packages/server/dist/cli.js"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0",
+    "typescript": "^5.6.3"
+  }
+}

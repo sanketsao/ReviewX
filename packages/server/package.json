@@ -1,0 +1,23 @@
+{
+  "name": "@protofeedback/server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local injecting proxy/static server + feedback API + tunnel + CLI",
+  "main": "dist/index.js",
+  "bin": {
+    "protofeedback": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "test": "node --test dist/*.test.js"
+  },
+  "dependencies": {
+    "@protofeedback/overlay": "0.1.0",
+    "http-proxy": "^1.18.1"
+  },
+  "devDependencies": {
+    "@types/http-proxy": "^1.17.15",
+    "@types/node": "^22.7.0"
+  }
+}

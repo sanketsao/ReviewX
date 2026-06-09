@@ -1,0 +1,58 @@
+{
+  "name": "protofeedback-vscode",
+  "displayName": "ProtoFeedback",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Share prototypes with a tour + feedback overlay, and review comments in the editor",
+  "publisher": "protofeedback",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "main": "./out/extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "commands": [
+      { "command": "protofeedback.start", "title": "ProtoFeedback: Start prototype with overlay" },
+      { "command": "protofeedback.share", "title": "ProtoFeedback: Share prototype (public URL)" },
+      { "command": "protofeedback.stop", "title": "ProtoFeedback: Stop" },
+      { "command": "protofeedback.editTour", "title": "ProtoFeedback: Edit tour" },
+      { "command": "protofeedback.refresh", "title": "ProtoFeedback: Refresh feedback", "icon": "$(refresh)" },
+      { "command": "protofeedback.resolveItem", "title": "Toggle resolved", "icon": "$(check)" }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "protofeedback",
+          "title": "ProtoFeedback",
+          "icon": "$(comment-discussion)"
+        }
+      ]
+    },
+    "views": {
+      "protofeedback": [
+        { "id": "protofeedback.feedback", "name": "Feedback" }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        { "command": "protofeedback.refresh", "when": "view == protofeedback.feedback", "group": "navigation" },
+        { "command": "protofeedback.start", "when": "view == protofeedback.feedback", "group": "navigation" }
+      ],
+      "view/item/context": [
+        { "command": "protofeedback.resolveItem", "when": "view == protofeedback.feedback && viewItem == feedbackItem", "group": "inline" }
+      ]
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "watch": "tsc -p tsconfig.json --watch"
+  },
+  "dependencies": {
+    "@protofeedback/server": "0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.0",
+    "@types/vscode": "^1.85.0"
+  }
+}

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Northwind — Personal Finance (Prototype)</title>
+    <style>
+      :root {
+        --bg: #0f172a; --panel: #1e293b; --panel2: #334155; --line: #334155;
+        --text: #e2e8f0; --muted: #94a3b8; --brand: #6366f1; --green: #34d399;
+        --red: #f87171; --amber: #fbbf24;
+      }
+      * { margin: 0; box-sizing: border-box; }
+      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); }
+      .app { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+
+      /* Sidebar */
+      .sidebar { background: #0b1222; border-right: 1px solid var(--line); padding: 20px 14px; }
+      .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; padding: 4px 8px 20px; }
+      .logo .mark { width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(135deg, #6366f1, #34d399); }
+      .nav a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px;
+        color: var(--muted); text-decoration: none; font-size: 14px; margin-bottom: 4px; }
+      .nav a:hover { background: var(--panel); color: var(--text); }
+      .nav a.active { background: var(--brand); color: #fff; }
+      .nav .ico { width: 18px; text-align: center; }
+
+      /* Main */
+      .main { padding: 24px 32px; }
+      .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+      .topbar h1 { font-size: 22px; }
+      .topbar .actions { display: flex; gap: 10px; align-items: center; }
+      .btn { background: var(--brand); color: #fff; border: 0; padding: 9px 16px; border-radius: 8px; font-size: 14px; cursor: pointer; }
+      .btn.ghost { background: var(--panel); color: var(--text); border: 1px solid var(--line); }
+      .avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--panel2); display: flex; align-items: center; justify-content: center; font-size: 13px; }
+
+      .grid { display: grid; gap: 16px; }
+      .cols-3 { grid-template-columns: repeat(3, 1fr); }
+      .cols-2 { grid-template-columns: 2fr 1fr; }
+      .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+      .card h3 { font-size: 13px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 10px; }
+      .stat { font-size: 28px; font-weight: 700; }
+      .delta { font-size: 13px; margin-top: 4px; }
+      .up { color: var(--green); } .down { color: var(--red); }
+
+      /* bar chart */
+      .bars { display: flex; align-items: flex-end; gap: 12px; height: 140px; margin-top: 8px; }
+      .bar { flex: 1; background: linear-gradient(180deg, #6366f1, #4338ca); border-radius: 6px 6px 0 0; position: relative; }
+      .bar span { position: absolute; bottom: -20px; left: 0; right: 0; text-align: center; font-size: 11px; color: var(--muted); }
+
+      table { width: 100%; border-collapse: collapse; font-size: 14px; }
+      th { text-align: left; color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; padding: 8px 10px; }
+      td { padding: 12px 10px; border-top: 1px solid var(--line); }
+      .pill { font-size: 12px; padding: 3px 9px; border-radius: 999px; background: var(--panel2); }
+      .amt-pos { color: var(--green); } .amt-neg { color: var(--red); }
+
+      .acct { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-top: 1px solid var(--line); }
+      .acct:first-child { border-top: 0; }
+      .acct .name { font-weight: 600; }
+      .acct .sub { color: var(--muted); font-size: 12px; }
+
+      .budget { margin-bottom: 16px; }
+      .budget .row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px; }
+      .track { height: 8px; background: var(--panel2); border-radius: 999px; overflow: hidden; }
+      .fill { height: 100%; border-radius: 999px; }
+
+      label { display: block; font-size: 12px; color: var(--muted); margin: 12px 0 4px; }
+      input, select { width: 100%; padding: 10px; background: #0b1222; color: var(--text); border: 1px solid var(--line); border-radius: 8px; font-size: 14px; }
+
+      .view { display: none; }
+      .view.active { display: block; }
+      .muted { color: var(--muted); }
+      .mt { margin-top: 16px; }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="logo"><span class="mark"></span> Northwind</div>
+        <nav class="nav" id="nav">
+          <a href="#/dashboard" data-tab="dashboard"><span class="ico">◫</span> Dashboard</a>
+          <a href="#/accounts" data-tab="accounts"><span class="ico">▤</span> Accounts</a>
+          <a href="#/transactions" data-tab="transactions"><span class="ico">⇄</span> Transactions</a>
+          <a href="#/budgets" data-tab="budgets"><span class="ico">◑</span> Budgets</a>
+          <a href="#/settings" data-tab="settings"><span class="ico">⚙</span> Settings</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="topbar">
+          <h1 id="page-title">Dashboard</h1>
+          <div class="actions">
+            <button class="btn ghost" id="export-btn">Export</button>
+            <button class="btn" id="add-btn">+ Add transaction</button>
+            <div class="avatar">JD</div>
+          </div>
+        </div>
+
+        <!-- Dashboard -->
+        <section class="view active" id="view-dashboard">
+          <div class="grid cols-3">
+            <div class="card" id="networth-card">
+              <h3>Net worth</h3>
+              <div class="stat">$182,940</div>
+              <div class="delta up">▲ 3.2% this month</div>
+            </div>
+            <div class="card">
+              <h3>Cash balance</h3>
+              <div class="stat">$24,310</div>
+              <div class="delta up">▲ $1,240</div>
+            </div>
+            <div class="card">
+              <h3>Monthly spend</h3>
+              <div class="stat">$5,870</div>
+              <div class="delta down">▼ 8% vs budget</div>
+            </div>
+          </div>
+
+          <div class="grid cols-2 mt">
+            <div class="card" id="spend-chart">
+              <h3>Spending — last 6 months</h3>
+              <div class="bars">
+                <div class="bar" style="height:60%"><span>Jan</span></div>
+                <div class="bar" style="height:80%"><span>Feb</span></div>
+                <div class="bar" style="height:45%"><span>Mar</span></div>
+                <div class="bar" style="height:90%"><span>Apr</span></div>
+                <div class="bar" style="height:70%"><span>May</span></div>
+                <div class="bar" style="height:55%"><span>Jun</span></div>
+              </div>
+            </div>
+            <div class="card">
+              <h3>Recent activity</h3>
+              <div class="acct"><div><div class="name">Whole Foods</div><div class="sub">Groceries</div></div><div class="amt-neg">−$86.20</div></div>
+              <div class="acct"><div><div class="name">Payroll</div><div class="sub">Acme Inc.</div></div><div class="amt-pos">+$4,200</div></div>
+              <div class="acct"><div><div class="name">Netflix</div><div class="sub">Subscriptions</div></div><div class="amt-neg">−$15.99</div></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Accounts -->
+        <section class="view" id="view-accounts">
+          <div class="card">
+            <h3>Your accounts</h3>
+            <div class="acct" id="acct-checking"><div><div class="name">Everyday Checking</div><div class="sub">•••• 4821</div></div><div class="stat" style="font-size:18px">$8,210</div></div>
+            <div class="acct"><div><div class="name">High-Yield Savings</div><div class="sub">•••• 9930</div></div><div class="stat" style="font-size:18px">$42,100</div></div>
+            <div class="acct"><div><div class="name">Sapphire Credit Card</div><div class="sub">•••• 1145</div></div><div class="stat amt-neg" style="font-size:18px">−$1,980</div></div>
+            <div class="acct"><div><div class="name">Brokerage</div><div class="sub">Index funds</div></div><div class="stat" style="font-size:18px">$134,610</div></div>
+          </div>
+          <button class="btn ghost mt" id="link-acct">+ Link a new account</button>
+        </section>
+
+        <!-- Transactions -->
+        <section class="view" id="view-transactions">
+          <div class="card">
+            <h3>Transactions</h3>
+            <table id="txn-table">
+              <thead><tr><th>Date</th><th>Description</th><th>Category</th><th style="text-align:right">Amount</th></tr></thead>
+              <tbody>
+                <tr><td>Jun 03</td><td>Whole Foods</td><td><span class="pill">Groceries</span></td><td class="amt-neg" style="text-align:right">−$86.20</td></tr>
+                <tr><td>Jun 02</td><td>Payroll — Acme Inc.</td><td><span class="pill">Income</span></td><td class="amt-pos" style="text-align:right">+$4,200.00</td></tr>
+                <tr><td>Jun 01</td><td>Shell Gas Station</td><td><span class="pill">Transport</span></td><td class="amt-neg" style="text-align:right">−$52.40</td></tr>
+                <tr><td>May 31</td><td>Netflix</td><td><span class="pill">Subscriptions</span></td><td class="amt-neg" style="text-align:right">−$15.99</td></tr>
+                <tr><td>May 30</td><td>Transfer to Savings</td><td><span class="pill">Transfer</span></td><td class="amt-neg" style="text-align:right">−$1,000.00</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Budgets -->
+        <section class="view" id="view-budgets">
+          <div class="card">
+            <h3>Monthly budgets</h3>
+            <div class="budget" id="budget-groceries">
+              <div class="row"><span>Groceries</span><span class="muted">$420 / $600</span></div>
+              <div class="track"><div class="fill" style="width:70%;background:var(--green)"></div></div>
+            </div>
+            <div class="budget">
+              <div class="row"><span>Dining out</span><span class="muted">$380 / $400</span></div>
+              <div class="track"><div class="fill" style="width:95%;background:var(--amber)"></div></div>
+            </div>
+            <div class="budget">
+              <div class="row"><span>Transport</span><span class="muted">$210 / $250</span></div>
+              <div class="track"><div class="fill" style="width:84%;background:var(--green)"></div></div>
+            </div>
+            <div class="budget">
+              <div class="row"><span>Entertainment</span><span class="muted">$190 / $150</span></div>
+              <div class="track"><div class="fill" style="width:100%;background:var(--red)"></div></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Settings -->
+        <section class="view" id="view-settings">
+          <div class="card" style="max-width:480px">
+            <h3>Profile</h3>
+            <label>Full name</label>
+            <input id="set-name" type="text" value="Jordan Doe" />
+            <label>Email</label>
+            <input id="set-email" type="email" value="jordan@example.com" />
+            <label>Currency</label>
+            <select id="set-currency"><option>USD ($)</option><option>EUR (€)</option><option>GBP (£)</option></select>
+            <button class="btn mt" id="save-profile">Save changes</button>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      var TITLES = { dashboard: "Dashboard", accounts: "Accounts", transactions: "Transactions", budgets: "Budgets", settings: "Settings" };
+      function route() {
+        var tab = (location.hash.replace(/^#\/?/, "") || "dashboard");
+        if (!TITLES[tab]) tab = "dashboard";
+        document.querySelectorAll(".view").forEach(function (v) { v.classList.remove("active"); });
+        var view = document.getElementById("view-" + tab);
+        if (view) view.classList.add("active");
+        document.querySelectorAll("#nav a").forEach(function (a) {
+          a.classList.toggle("active", a.getAttribute("data-tab") === tab);
+        });
+        document.getElementById("page-title").textContent = TITLES[tab];
+      }
+      window.addEventListener("hashchange", route);
+      route();
+    </script>
+  </body>
+</html>
