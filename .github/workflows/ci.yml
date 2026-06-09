@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Overlay is bundled with esbuild (no typecheck) — run tsc explicitly.
+      - name: Typecheck overlay
+        run: npm run typecheck -w @protofeedback/overlay
+      # Builds every workspace (overlay, reviewx snippet, server, vscode ext);
+      # the server build is tsc, so it typechecks + emits the test files.
+      - name: Build all workspaces
+        run: npm run build
+      - name: Test
+        run: npm test

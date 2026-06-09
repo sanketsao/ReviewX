@@ -1,8 +1,8 @@
 import * as http from "http";
 import * as path from "path";
-import { promises as fs } from "fs";
 import type { StorageAdapter } from "./store";
 import { createStorageProvider, type StorageBackend } from "./storage";
+import { safeEqual, verifyHs256 } from "./jwt";
 import { buildXlsx } from "./xlsx";
 import type { Feedback, Settings, TourStep } from "./types";
 
@@ -19,6 +19,10 @@ export interface InboxOptions {
   sqlitePath?: string;
   /** Postgres connection string (required when storage = "postgres"). */
   databaseUrl?: string;
+  /** Deployment-wide admin key; authorizes author ops for any project. */
+  adminToken?: string;
+  /** HS256 secret to accept JWTs (from an IdP/SSO) for author ops. */
+  jwtSecret?: string;
 }
 
 export interface RunningInbox {
@@ -88,41 +92,32 @@ export async function createInbox(opts: InboxOptions = {}): Promise<RunningInbox
   });
   const storeFor = (project: unknown): StorageAdapter => storage.for(safeProject(project));
 
-  // --- Per-project write token (trust-on-first-use) -----------------------
+  // Enterprise auth (optional): a deployment-wide admin key and/or an HS256 JWT
+  // secret. Either, when configured, authorizes author ops for any project —
+  // letting ops provision access centrally instead of per-project tokens.
+  const adminToken = opts.adminToken;
+  const jwtSecret = opts.jwtSecret;
+
+  // --- Per-project author token (trust-on-first-use) ----------------------
   // A project is "open" until someone presents a token; the first tokened
-  // request claims it (persisted to <project>/.protofeedback/secret.json).
-  // Thereafter, author-only operations (resolve/edit/tour/settings/export)
-  // require the matching token. Reviewer feedback POSTs always stay open so
-  // the zero-install path keeps working — abuse is bounded by rate limiting.
+  // request claims it (persisted via the storage adapter, so it lives wherever
+  // the data does — file / sqlite / postgres). Thereafter author-only ops
+  // (resolve/edit/tour/settings/export) require the matching token. Reviewer
+  // feedback POSTs always stay open — abuse is bounded by rate limiting.
   const tokenCache = new Map<string, string | null>();
-  const secretFile = (id: string): string =>
-    path.join(dataRoot, id, ".protofeedback", "secret.json");
 
   async function loadToken(id: string): Promise<string | null> {
     if (tokenCache.has(id)) return tokenCache.get(id) as string | null;
-    let value: string | null = null;
-    try {
-      const raw = await fs.readFile(secretFile(id), "utf8");
-      const t = (JSON.parse(raw) as { token?: unknown }).token;
-      value = typeof t === "string" && t ? t : null;
-    } catch {
-      value = null;
-    }
+    const value = await storeFor(id).getToken();
     tokenCache.set(id, value);
     return value;
   }
 
-  async function claimToken(id: string, token: string): Promise<void> {
-    const dir = path.join(dataRoot, id, ".protofeedback");
-    await fs.mkdir(dir, { recursive: true });
-    await fs.writeFile(secretFile(id), JSON.stringify({ token }, null, 2), "utf8");
-    tokenCache.set(id, token);
-  }
-
   /**
-   * Resolve a project + enforce the token. `privileged` ops require a matching
-   * token once the project is claimed; any tokened request claims an unclaimed
-   * project. Returns the resolved store on success, or an error to send.
+   * Resolve a project + enforce author auth. Non-privileged ops (read, reviewer
+   * POST) are always allowed. For privileged ops: a valid admin key or JWT wins;
+   * otherwise the per-project TOFU token applies (any token claims an unclaimed
+   * project; once claimed, it must match).
    */
   async function authorize(
     projectRaw: unknown,
@@ -130,18 +125,25 @@ export async function createInbox(opts: InboxOptions = {}): Promise<RunningInbox
     privileged: boolean
   ): Promise<{ ok: true; store: StorageAdapter } | { ok: false; status: number; error: string }> {
     const id = safeProject(projectRaw);
+    const store = storeFor(id);
+    if (!privileged) return { ok: true, store };
+
+    if (adminToken && token && safeEqual(token, adminToken)) return { ok: true, store };
+    if (jwtSecret && token && verifyHs256(token, jwtSecret)) return { ok: true, store };
+
     let stored = await loadToken(id);
-    if (!stored && token) {
-      await claimToken(id, token);
-      stored = token;
+    if (!stored) {
+      if (token) {
+        await store.setToken(token);
+        tokenCache.set(id, token);
+      }
+      return { ok: true, store }; // unclaimed project: first author op allowed
     }
-    if (stored && privileged && token !== stored) {
-      // 401 when no credential was sent; 403 when a wrong one was.
-      return token
-        ? { ok: false, status: 403, error: "invalid project token" }
-        : { ok: false, status: 401, error: "missing project token" };
-    }
-    return { ok: true, store: storeFor(id) };
+    if (token && safeEqual(token, stored)) return { ok: true, store };
+    // 401 when no credential was sent; 403 when a wrong one was.
+    return token
+      ? { ok: false, status: 403, error: "invalid project token" }
+      : { ok: false, status: 401, error: "missing project token" };
   }
 
   // --- Write rate limiting (per-IP token bucket) --------------------------

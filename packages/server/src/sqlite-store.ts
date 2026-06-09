@@ -51,6 +51,10 @@ export class SqliteDatabase {
         project         TEXT PRIMARY KEY,
         auto_start_tour INTEGER NOT NULL DEFAULT 1
       );
+      CREATE TABLE IF NOT EXISTS tokens (
+        project TEXT PRIMARY KEY,
+        token   TEXT NOT NULL
+      );
     `);
   }
 
@@ -217,5 +221,21 @@ export class SqliteStore implements StorageAdapter {
       )
       .run(this.project, next.autoStartTour ? 1 : 0);
     return next;
+  }
+
+  async getToken(): Promise<string | null> {
+    const row = this.db
+      .prepare("SELECT token FROM tokens WHERE project = ?")
+      .get(this.project) as { token: string } | undefined;
+    return row?.token ?? null;
+  }
+
+  async setToken(token: string): Promise<void> {
+    this.db
+      .prepare(
+        `INSERT INTO tokens (project, token) VALUES (?, ?)
+         ON CONFLICT(project) DO UPDATE SET token = excluded.token`
+      )
+      .run(this.project, token);
   }
 }

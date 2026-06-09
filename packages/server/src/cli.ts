@@ -53,8 +53,9 @@ Options:
       --database-url <u> Postgres connection string (storage=postgres)
   -h, --help         Show this help
 
-Env (inbox): PORT, REVIEWX_DATA_DIR, REVIEWX_WRITE_RATE_LIMIT,
-             REVIEWX_STORAGE=file|sqlite|postgres, REVIEWX_SQLITE_PATH, DATABASE_URL
+Env (inbox): PORT, HOST, REVIEWX_DATA_DIR, REVIEWX_WRITE_RATE_LIMIT,
+             REVIEWX_STORAGE=file|sqlite|postgres, REVIEWX_SQLITE_PATH, DATABASE_URL,
+             REVIEWX_ADMIN_TOKEN (deployment admin key), REVIEWX_JWT_SECRET (HS256)
 `;
 
 async function main() {
@@ -82,6 +83,8 @@ async function main() {
       sqlitePath: sqlitePath ? path.resolve(sqlitePath) : undefined,
       databaseUrl,
       writeRateLimit: rate ? Number(rate) : undefined,
+      adminToken: process.env.REVIEWX_ADMIN_TOKEN,
+      jwtSecret: process.env.REVIEWX_JWT_SECRET,
     });
     process.stdout.write(
       `\n  ReviewX inbox ready  [storage: ${storage ?? "file"}]\n  Endpoint: ${inbox.url}\n` +

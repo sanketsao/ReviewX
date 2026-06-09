@@ -35,6 +35,7 @@ export async function migratePostgres(pool: PgPool): Promise<void> {
   await pool.query(
     `CREATE TABLE IF NOT EXISTS settings (project TEXT PRIMARY KEY, auto_start_tour BOOLEAN NOT NULL DEFAULT TRUE)`
   );
+  await pool.query(`CREATE TABLE IF NOT EXISTS tokens (project TEXT PRIMARY KEY, token TEXT NOT NULL)`);
 }
 
 type FeedbackRow = {
@@ -196,5 +197,19 @@ export class PostgresStore implements StorageAdapter {
       [this.project, next.autoStartTour]
     );
     return next;
+  }
+
+  async getToken(): Promise<string | null> {
+    const { rows } = await this.pool.query("SELECT token FROM tokens WHERE project = $1", [this.project]);
+    const row = rows[0] as { token: string } | undefined;
+    return row?.token ?? null;
+  }
+
+  async setToken(token: string): Promise<void> {
+    await this.pool.query(
+      `INSERT INTO tokens (project, token) VALUES ($1, $2)
+       ON CONFLICT (project) DO UPDATE SET token = EXCLUDED.token`,
+      [this.project, token]
+    );
   }
 }
