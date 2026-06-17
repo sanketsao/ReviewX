@@ -15,10 +15,16 @@ interface ItemNode {
   feedback: Feedback;
 }
 
+interface ReviewxConfig {
+  project?: string;
+  publish?: { endpoint?: string };
+}
+
 export class FeedbackProvider implements vscode.TreeDataProvider<Node> {
   private emitter = new vscode.EventEmitter<Node | undefined>();
   readonly onDidChangeTreeData = this.emitter.event;
   private feedbacks: Feedback[] = [];
+  private config: ReviewxConfig = {};
 
   constructor(private workspaceRoot: string | undefined) {}
 
@@ -28,12 +34,29 @@ export class FeedbackProvider implements vscode.TreeDataProvider<Node> {
       : undefined;
   }
 
+  /** The inbox endpoint from .reviewx/config.json, if present. */
+  get endpoint(): string | undefined { return this.config.publish?.endpoint; }
+  /** The project id from .reviewx/config.json, if present. */
+  get project(): string | undefined { return this.config.project; }
+
   async refresh(): Promise<void> {
+    this.config = await this.readConfig();
     this.feedbacks = await this.read();
     this.emitter.fire(undefined);
   }
 
-  private async read(): Promise<Feedback[]> {
+  private async readConfig(): Promise<ReviewxConfig> {
+    if (!this.workspaceRoot) return {};
+    try {
+      return JSON.parse(
+        await fs.readFile(path.join(this.workspaceRoot, ".reviewx", "config.json"), "utf8")
+      );
+    } catch {
+      return {};
+    }
+  }
+
+  private async readLocal(): Promise<Feedback[]> {
     if (!this.file) return [];
     try {
       const raw = await fs.readFile(this.file, "utf8");
@@ -42,6 +65,33 @@ export class FeedbackProvider implements vscode.TreeDataProvider<Node> {
     } catch {
       return [];
     }
+  }
+
+  private async fetchRemote(endpoint: string, project: string): Promise<Feedback[]> {
+    try {
+      const url = `${endpoint.replace(/\/$/, "")}/feedback?project=${encodeURIComponent(project)}`;
+      const res = await fetch(url);
+      if (!res.ok) return [];
+      const data = (await res.json()) as unknown;
+      return Array.isArray(data) ? (data as Feedback[]) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private async read(): Promise<Feedback[]> {
+    const { endpoint, project } = this.config.publish ?? {};
+    const [local, remote] = await Promise.all([
+      this.readLocal(),
+      endpoint && project ? this.fetchRemote(endpoint, project) : Promise.resolve([] as Feedback[]),
+    ]);
+    // Remote is authoritative for shared items (has latest status from all authors).
+    // Merge: start with local, overwrite any matching ids from remote, append new ones.
+    const byId = new Map<string, Feedback>(local.map((f) => [f.id, f]));
+    for (const f of remote) byId.set(f.id, f);
+    return [...byId.values()].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
   }
 
   getTreeItem(node: Node): vscode.TreeItem {

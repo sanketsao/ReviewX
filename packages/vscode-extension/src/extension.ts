@@ -237,6 +237,22 @@ async function stopCmd(): Promise<void> {
   void vscode.window.showInformationMessage("ProtoFeedback stopped.");
 }
 
+/** Read or generate the project's TOFU token from .protofeedback/secret.json. */
+async function readOrCreateToken(root: string): Promise<string> {
+  const file = path.join(root, ".protofeedback", "secret.json");
+  try {
+    const obj = JSON.parse(await fs.readFile(file, "utf8")) as Record<string, unknown>;
+    if (typeof obj.token === "string" && obj.token) return obj.token;
+  } catch { /* not found */ }
+  // Generate a new token and persist it so future ops use the same one.
+  const token = [...crypto.getRandomValues(new Uint8Array(16))]
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+  await fs.mkdir(path.join(root, ".protofeedback"), { recursive: true });
+  await fs.writeFile(file, JSON.stringify({ token }, null, 2), "utf8");
+  return token;
+}
+
 async function resolveCmd(
   root: string | undefined,
   node: unknown,
@@ -245,17 +261,46 @@ async function resolveCmd(
   if (!root) return;
   const id = (node as { feedback?: Feedback })?.feedback?.id;
   if (!id) return;
+
+  const current = provider.getFeedbackById(id);
+  if (!current) return;
+  const newStatus: Feedback["status"] = current.status === "resolved" ? "open" : "resolved";
+
+  // If an inbox is configured, PATCH it first (it's the source of truth).
+  const endpoint = provider.endpoint;
+  const project = provider.project;
+  if (endpoint && project) {
+    try {
+      const token = await readOrCreateToken(root);
+      const url = `${endpoint.replace(/\/$/, "")}/feedback/${id}`;
+      const res = await fetch(url, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", "X-PF-Token": token },
+        body: JSON.stringify({ project, status: newStatus }),
+      });
+      if (!res.ok) {
+        const err = (await res.json().catch(() => ({ error: res.statusText }))) as { error?: string };
+        void vscode.window.showErrorMessage(`Inbox update failed: ${err.error ?? res.statusText}`);
+        return;
+      }
+    } catch (err) {
+      void vscode.window.showErrorMessage(`Could not reach inbox: ${(err as Error).message}`);
+      return;
+    }
+  }
+
+  // Update local file too (best-effort — may not exist for inbox-only items).
   const file = path.join(root, ".protofeedback", "feedback.json");
   try {
     const all = JSON.parse(await fs.readFile(file, "utf8")) as Feedback[];
     const fb = all.find((f) => f.id === id);
-    if (!fb) return;
-    fb.status = fb.status === "resolved" ? "open" : "resolved";
-    await fs.writeFile(file, JSON.stringify(all, null, 2), "utf8");
-    await provider.refresh();
-  } catch (err) {
-    void vscode.window.showErrorMessage(`Could not update: ${(err as Error).message}`);
-  }
+    if (fb) {
+      fb.status = newStatus;
+      await fs.writeFile(file, JSON.stringify(all, null, 2), "utf8");
+    }
+  } catch { /* local file may not exist — that's fine */ }
+
+  await provider.refresh();
 }
 
 export async function deactivate(): Promise<void> {
