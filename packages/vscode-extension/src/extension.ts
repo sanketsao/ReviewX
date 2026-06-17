@@ -1,7 +1,8 @@
 import * as vscode from "vscode";
 import * as path from "path";
+import * as os from "os";
 import { promises as fs } from "fs";
-import { createServer, startTunnel } from "@protofeedback/server";
+import { createServer, startTunnel, staticExport, deployGitHubPages } from "@protofeedback/server";
 import type { RunningServer, Tunnel, Feedback } from "@protofeedback/server";
 import { FeedbackProvider } from "./feedbackView";
 import { TourEditor } from "./tourEditor";
@@ -37,6 +38,7 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     vscode.commands.registerCommand("protofeedback.start", () => startCmd(root)),
     vscode.commands.registerCommand("protofeedback.share", () => shareCmd()),
+    vscode.commands.registerCommand("protofeedback.publish", () => publishCmd(root)),
     vscode.commands.registerCommand("protofeedback.stop", () => stopCmd()),
     vscode.commands.registerCommand("protofeedback.refresh", () => provider.refresh()),
     vscode.commands.registerCommand("protofeedback.editTour", () => {
@@ -110,6 +112,121 @@ async function showShareUrl(url: string): Promise<void> {
     "Copy URL"
   );
   if (pick === "Copy URL") await vscode.env.clipboard.writeText(url);
+}
+
+interface ReviewxConfig {
+  project?: string;
+  source?: { type?: string; dir?: string };
+  publish?: { mode?: string; endpoint?: string };
+}
+
+async function readConfig(root: string): Promise<ReviewxConfig> {
+  try {
+    return JSON.parse(await fs.readFile(path.join(root, ".reviewx", "config.json"), "utf8"));
+  } catch {
+    return {};
+  }
+}
+
+/** Parse `owner/repo` from a GitHub remote URL (https or ssh). */
+function parseGitHubRemote(url: string): { owner: string; repo: string } | undefined {
+  const m = url.match(/github\.com[:/]([^/]+)\/(.+?)(?:\.git)?\/?$/);
+  return m ? { owner: m[1], repo: m[2] } : undefined;
+}
+
+async function gitHubRepo(root: string): Promise<{ owner: string; repo: string } | undefined> {
+  try {
+    const cfg = await fs.readFile(path.join(root, ".git", "config"), "utf8");
+    // Prefer origin; fall back to the first github remote.
+    const blocks = cfg.split(/\[remote /).slice(1);
+    const urls = blocks
+      .map((b) => ({ name: b.slice(1, b.indexOf('"', 1)), url: b.match(/url\s*=\s*(.+)/)?.[1]?.trim() }))
+      .filter((r) => r.url);
+    const pick = urls.find((r) => r.name === "origin") ?? urls[0];
+    return pick?.url ? parseGitHubRemote(pick.url) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Find a sensible static source: configured dir, else root w/ index.html, else a build dir. */
+async function detectSource(root: string, cfg: ReviewxConfig): Promise<string | undefined> {
+  const has = async (d: string) => !!(await fs.stat(path.join(d, "index.html")).catch(() => null));
+  if (cfg.source?.dir) return path.join(root, cfg.source.dir);
+  if (await has(root)) return root;
+  for (const d of ["dist", "build", "out", "public"]) {
+    if (await has(path.join(root, d))) return path.join(root, d);
+  }
+  return undefined;
+}
+
+async function publishCmd(root: string | undefined): Promise<void> {
+  if (!root) return void vscode.window.showWarningMessage("Open your prototype's folder first.");
+
+  const repo = await gitHubRepo(root);
+  if (!repo) {
+    return void vscode.window.showWarningMessage(
+      "No GitHub remote found. Push this project to a GitHub repo first, then Publish."
+    );
+  }
+
+  const cfg = await readConfig(root);
+  let source = await detectSource(root, cfg);
+  if (!source) {
+    const picked = await vscode.window.showInputBox({
+      prompt: "Folder to publish (must contain index.html). For built apps, run your build first.",
+      value: "dist",
+    });
+    if (!picked) return;
+    source = path.join(root, picked);
+  }
+
+  // Reuse VS Code's built-in GitHub login — no new account, no token to manage.
+  const session = await vscode.authentication.getSession("github", ["repo"], { createIfNone: true });
+  if (!session) return void vscode.window.showErrorMessage("GitHub sign-in is required to publish.");
+
+  const endpoint =
+    cfg.publish?.endpoint ||
+    (await vscode.window.showInputBox({
+      prompt: "Feedback inbox URL (leave blank to collect feedback only in each reviewer's browser)",
+      placeHolder: "https://your-inbox.fly.dev",
+    })) ||
+    undefined;
+
+  await vscode.window.withProgress(
+    { location: vscode.ProgressLocation.Notification, title: `Publishing to ${repo.owner}/${repo.repo}…` },
+    async (progress) => {
+      try {
+        const outDir = path.join(os.tmpdir(), `reviewx-publish-${repo.repo}-${Date.now()}`);
+        progress.report({ message: "Building…" });
+        await staticExport({
+          srcDir: source!,
+          outDir,
+          project: cfg.project || `${repo.owner}-${repo.repo}`,
+          endpoint,
+          bundleWidget: true,
+          basePath: `/${repo.repo}/`,
+        });
+        progress.report({ message: "Deploying to GitHub Pages…" });
+        const { url } = await deployGitHubPages({
+          artifactDir: outDir,
+          owner: repo.owner,
+          repo: repo.repo,
+          token: session.accessToken,
+        });
+        await fs.rm(outDir, { recursive: true, force: true });
+        const pick = await vscode.window.showInformationMessage(
+          `Published: ${url}${endpoint ? "" : "  (feedback is per-browser — set an inbox for shared feedback)"}`,
+          "Copy link",
+          "Open"
+        );
+        if (pick === "Copy link") await vscode.env.clipboard.writeText(url);
+        if (pick === "Open") await vscode.env.openExternal(vscode.Uri.parse(url));
+      } catch (err) {
+        void vscode.window.showErrorMessage(`Publish failed: ${(err as Error).message}`);
+      }
+    }
+  );
 }
 
 async function stopCmd(): Promise<void> {

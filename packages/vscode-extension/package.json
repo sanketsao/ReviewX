@@ -15,6 +15,7 @@
     "commands": [
       { "command": "protofeedback.start", "title": "ProtoFeedback: Start prototype with overlay" },
       { "command": "protofeedback.share", "title": "ProtoFeedback: Share prototype (public URL)" },
+      { "command": "protofeedback.publish", "title": "ProtoFeedback: Publish to GitHub Pages", "icon": "$(cloud-upload)" },
       { "command": "protofeedback.stop", "title": "ProtoFeedback: Stop" },
       { "command": "protofeedback.editTour", "title": "ProtoFeedback: Edit tour" },
       { "command": "protofeedback.refresh", "title": "ProtoFeedback: Refresh feedback", "icon": "$(refresh)" },
@@ -37,6 +38,7 @@
     "menus": {
       "view/title": [
         { "command": "protofeedback.refresh", "when": "view == protofeedback.feedback", "group": "navigation" },
+        { "command": "protofeedback.publish", "when": "view == protofeedback.feedback", "group": "navigation" },
         { "command": "protofeedback.start", "when": "view == protofeedback.feedback", "group": "navigation" }
       ],
       "view/item/context": [
