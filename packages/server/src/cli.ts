@@ -4,6 +4,7 @@ import { createServer } from "./server";
 import { createInbox } from "./inbox";
 import { startTunnel } from "./tunnel";
 import { staticExport } from "./publish";
+import { deployGitHubPages, resolveGitHubToken } from "./gh-pages";
 
 interface Args {
   command?: "publish";
@@ -22,6 +23,8 @@ interface Args {
   project?: string;
   bundleWidget?: boolean;
   target?: string;
+  repo?: string;
+  githubToken?: string;
   help?: boolean;
 }
 
@@ -47,6 +50,8 @@ function parse(argv: string[]): Args {
     else if (a === "--project") args.project = argv[++i];
     else if (a === "--bundle-widget") args.bundleWidget = true;
     else if (a === "--target") args.target = argv[++i];
+    else if (a === "--repo") args.repo = argv[++i];
+    else if (a === "--github-token") args.githubToken = argv[++i];
     else if (a === "--help" || a === "-h") args.help = true;
     else if (!a.startsWith("-")) args.dir = a;
   }
@@ -63,11 +68,13 @@ Usage:
   protofeedback publish <dir> -o <out>  Build a hostable copy w/ widget injected
 
 Publish options:
-  -o, --out <dir>      Where to write the hostable artifact (required)
+  -o, --out <dir>      Where to write the hostable artifact
       --endpoint <url> Inbox the embedded widget posts feedback to
-      --project <id>   Project id reported to the inbox (default: dir name)
+      --project <id>   Project id reported to the inbox (default: dir/repo name)
       --bundle-widget  Embed reviewx.js in the artifact (no CDN dependency)
-      --target <name>  Upload target: dir (default) | cloudflare-pages (todo)
+      --target <name>  dir (default) | github-pages
+      --repo <o>/<r>   Repo for github-pages (uses GITHUB_TOKEN / gh / --github-token)
+      --github-token <t>  Token with repo scope (else env GITHUB_TOKEN or gh)
 
 Options:
   -p, --port <n>     Local port (default 4321; inbox default 4400)
@@ -93,17 +100,49 @@ async function main() {
 
   if (args.command === "publish") {
     if (!args.dir) throw new Error("publish needs a source directory: reviewx publish <dir> -o <out>");
-    if (!args.out) throw new Error("publish needs an output dir: --out <dir>");
-    const srcDir = path.resolve(args.dir);
-    const project = args.project || path.basename(srcDir);
+    const target = args.target || "dir";
+
+    // GitHub Pages serves project sites under /<repo>/, so the bundled widget
+    // must be referenced under that base path.
+    let owner = "";
+    let repo = "";
+    let basePath: string | undefined;
+    if (target === "github-pages") {
+      if (!args.repo || !args.repo.includes("/")) {
+        throw new Error("github-pages target needs --repo <owner>/<name>");
+      }
+      [owner, repo] = args.repo.split("/");
+      basePath = `/${repo}/`;
+    }
+
+    const outDir = args.out ? path.resolve(args.out) : path.resolve(".reviewx-publish");
+    const project = args.project || (repo ? `${owner}-${repo}` : path.basename(path.resolve(args.dir)));
     const result = await staticExport({
-      srcDir,
-      outDir: path.resolve(args.out),
+      srcDir: path.resolve(args.dir),
+      outDir,
       project,
       endpoint: args.endpoint,
-      bundleWidget: args.bundleWidget,
+      bundleWidget: args.bundleWidget ?? target === "github-pages", // self-contained for Pages
+      basePath,
     });
-    const target = args.target || "dir";
+
+    if (target === "github-pages") {
+      const token = await resolveGitHubToken(args.githubToken);
+      if (!token) {
+        throw new Error("no GitHub token — set GITHUB_TOKEN, pass --github-token, or run `gh auth login`");
+      }
+      process.stdout.write(`\n  Publishing ${owner}/${repo} to GitHub Pages…\n`);
+      const { url, branch } = await deployGitHubPages({ artifactDir: outDir, owner, repo, token });
+      process.stdout.write(
+        `\n  Published to GitHub Pages\n` +
+          `  Link:     ${url}\n` +
+          `  Branch:   ${branch} (force-updated each publish)\n` +
+          `  Project:  ${project}\n` +
+          `  Feedback: ${args.endpoint || "(none — pass --endpoint <inbox> for shared feedback)"}\n\n`
+      );
+      return;
+    }
+
     if (target !== "dir") {
       process.stderr.write(`\n  Target "${target}" not implemented yet — wrote the artifact locally instead.\n`);
     }

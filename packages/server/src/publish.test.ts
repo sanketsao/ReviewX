@@ -18,6 +18,14 @@ test("snippetTag uses /reviewx.js when bundled, CDN otherwise", () => {
   assert.match(snippetTag({ project: "p" }), /src="https:\/\/cdn\.jsdelivr\.net\/npm\/reviewx@1"/);
 });
 
+test("basePath prefixes the bundled widget src (GitHub project Pages subpath)", () => {
+  assert.match(snippetTag({ project: "p", bundleWidget: true, basePath: "/my-repo/" }), /src="\/my-repo\/reviewx\.js"/);
+  // tolerant of missing/extra slashes
+  assert.match(snippetTag({ project: "p", bundleWidget: true, basePath: "my-repo" }), /src="\/my-repo\/reviewx\.js"/);
+  // basePath only affects the bundled case, not the CDN
+  assert.match(snippetTag({ project: "p", basePath: "/my-repo/" }), /cdn\.jsdelivr/);
+});
+
 test("injectSnippet inserts before </body>, once", () => {
   const html = "<html><body><h1>Hi</h1></body></html>";
   const once = injectSnippet(html, { project: "p" });

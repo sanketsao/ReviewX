@@ -19,6 +19,18 @@ export interface PublishOptions {
   bundleWidget?: boolean;
   /** Override the widget <script src>. Defaults to jsDelivr (or /reviewx.js if bundled). */
   cdn?: string;
+  /**
+   * URL path the artifact is served under (e.g. "/my-repo/" for GitHub project
+   * Pages). Prefixes the bundled widget src so it resolves under the subpath.
+   * Defaults to "/".
+   */
+  basePath?: string;
+}
+
+/** Normalize a base path to the form "/x/" (always leading + trailing slash). */
+function normBase(basePath?: string): string {
+  if (!basePath || basePath === "/") return "/";
+  return `/${basePath.replace(/^\/+|\/+$/g, "")}/`;
 }
 
 export interface PublishResult {
@@ -35,8 +47,10 @@ function reviewxBundlePath(): string {
 }
 
 /** Build the reviewer-copy snippet tag (no author token — published copy is public). */
-export function snippetTag(opts: Pick<PublishOptions, "project" | "endpoint" | "bundleWidget" | "cdn">): string {
-  const src = opts.bundleWidget ? "/reviewx.js" : opts.cdn || DEFAULT_CDN;
+export function snippetTag(
+  opts: Pick<PublishOptions, "project" | "endpoint" | "bundleWidget" | "cdn" | "basePath">
+): string {
+  const src = opts.bundleWidget ? `${normBase(opts.basePath)}reviewx.js` : opts.cdn || DEFAULT_CDN;
   const attrs = [
     `src="${src}"`,
     "data-reviewx",
@@ -100,11 +114,13 @@ export async function staticExport(opts: PublishOptions): Promise<PublishResult>
     await fs.copyFile(reviewxBundlePath(), path.join(out, "reviewx.js"));
     total++;
   }
+  // Disable Jekyll on GitHub Pages so files/dirs starting with "_" are served.
+  await fs.writeFile(path.join(out, ".nojekyll"), "");
 
   return {
     outDir: out,
     files: total,
     htmlFiles,
-    widgetSrc: opts.bundleWidget ? "/reviewx.js" : opts.cdn || DEFAULT_CDN,
+    widgetSrc: opts.bundleWidget ? `${normBase(opts.basePath)}reviewx.js` : opts.cdn || DEFAULT_CDN,
   };
 }
