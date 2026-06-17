@@ -68,12 +68,16 @@ token, cloud creds. Set via "Connect…" flows, not by editing files.
 > Builder cost: **one ReviewX signup + one click.** We host + collect feedback.
 > Needs: the managed SaaS backend (not built yet).
 
-### `host` → Connect your host  *(BYO, e.g. Cloudflare Pages)*
-1. Ensure host connected — **"Connect Cloudflare"** opens a browser OAuth/token flow
-   once; token → SecretStorage.
-2. Ensure an `endpoint` (their inbox). If none: offer a managed inbox or prompt for URL.
-3. `staticExport(endpoint)` → deploy to the host (Pages/Netlify/S3) → return their link.
-> Builder cost: **one free host signup**, smoothed by Connect. We operate nothing.
+### `host` → Publish via the account they already have  *(recommended BYO)*
+**Lead with GitHub Pages** — the builder already has a GitHub account (the prototype's repo)
+and VS Code is already signed in, so there's **no new account, no token, no dashboard**:
+1. Get the GitHub session (`getSession("github", ["repo"])`) — reuses VS Code's login.
+2. `staticExport` with `endpoint` = our **shared hosted inbox**, `basePath = "/<repo>/"`.
+3. Push the artifact to an orphan `reviewx-pages` branch → enable Pages → return
+   `https://<owner>.github.io/<repo>/`.
+> Builder cost: **one "Allow" click.** Prototype rides on their free GitHub Pages (we serve
+> $0 egress); we host only the tiny inbox. Cloudflare/Netlify via OAuth = fallback for
+> users without GitHub. (Full flow + caveats: PUBLISH-PLAN.md.)
 
 ### `company` → Publish to Company  *(enterprise; user3/user4)*
 1. Read the committed `endpoint` + `target` (set once by IT).
