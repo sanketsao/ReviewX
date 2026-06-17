@@ -80,7 +80,8 @@ export class FeedbackProvider implements vscode.TreeDataProvider<Node> {
   }
 
   private async read(): Promise<Feedback[]> {
-    const { endpoint, project } = this.config.publish ?? {};
+    const endpoint = this.config.publish?.endpoint;
+    const project = this.config.project;
     const [local, remote] = await Promise.all([
       this.readLocal(),
       endpoint && project ? this.fetchRemote(endpoint, project) : Promise.resolve([] as Feedback[]),
