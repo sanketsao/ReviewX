@@ -306,17 +306,37 @@ export class OverlayApp {
       placeholder: "What should change here?",
     }) as HTMLTextAreaElement;
 
+    const errEl = h("div", { class: "pf-form-err hidden" }) as HTMLElement;
+    const btn = h("button", { class: "pf-primary" }, "Comment") as HTMLButtonElement;
+
     const submit = async () => {
       const text = textArea.value.trim();
-      if (!text) return;
+      if (!text) {
+        textArea.style.outline = "2px solid #e53e3e";
+        textArea.focus();
+        return;
+      }
+      textArea.style.outline = "";
+      btn.disabled = true;
+      btn.textContent = "Saving…";
+      errEl.className = "pf-form-err hidden";
       this.author = nameInput.value.trim() || "Anonymous";
       localStorage.setItem("pf_author", this.author);
-      await this.backend.createFeedback({ anchor, text, author: this.author, page: this.page });
+      try {
+        await this.backend.createFeedback({ anchor, text, author: this.author, page: this.page });
+      } catch (e) {
+        errEl.textContent = `Error: ${(e as Error).message}`;
+        errEl.className = "pf-form-err";
+        btn.disabled = false;
+        btn.textContent = "Comment";
+        return;
+      }
       this.closePopover();
       await this.refreshFeedback();
       this.renderControls();
       this.renderPins();
     };
+    btn.addEventListener("click", submit);
 
     const pop = h(
       "div",
@@ -324,11 +344,12 @@ export class OverlayApp {
       h("h4", {}, "New comment"),
       nameInput,
       textArea,
+      errEl,
       h(
         "div",
         { class: "pf-row" },
         h("button", { class: "pf-ghost", onclick: () => this.closePopover() }, "Cancel"),
-        h("button", { class: "pf-primary", onclick: submit }, "Comment")
+        btn
       )
     );
     this.placePopover(pop, x, y);

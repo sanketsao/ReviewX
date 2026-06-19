@@ -68,9 +68,25 @@ export async function deployGitHubPages(opts: GitHubPagesOptions): Promise<GitHu
     source: { branch, path: "/" },
   });
   if (res.status === 409) {
+    // Pages already enabled — just update the source branch.
     res = await gh(token, "PUT", `/repos/${owner}/${repo}/pages`, {
       source: { branch, path: "/" },
     });
+  } else if (res.status === 422) {
+    // 422 = GitHub plan doesn't support Pages for this repo (private repo on free plan).
+    // Check if Pages is already enabled from a previous publish; if so, update instead.
+    const check = await gh(token, "GET", `/repos/${owner}/${repo}/pages`);
+    if (check.ok) {
+      res = await gh(token, "PUT", `/repos/${owner}/${repo}/pages`, {
+        source: { branch, path: "/" },
+      });
+    } else {
+      throw new Error(
+        `GitHub Pages is not available for "${owner}/${repo}". ` +
+        `GitHub Pages is free for public repositories. ` +
+        `Go to github.com/${owner}/${repo} → Settings → Danger Zone → Change visibility → Make public, then try again.`
+      );
+    }
   }
   if (!res.ok && res.status !== 204) {
     throw new Error(`enabling GitHub Pages failed (${res.status}): ${await res.text()}`);
