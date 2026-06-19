@@ -14,9 +14,9 @@ import { createGzip } from "zlib";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 
-let archiver;
+let ZipArchive;
 try {
-  ({ default: archiver } = await import("archiver"));
+  ({ ZipArchive } = require("archiver"));
 } catch {
   console.error("archiver not found — run: npm install archiver");
   process.exit(1);
@@ -69,7 +69,7 @@ const CONTENT_TYPES = `<?xml version="1.0" encoding="utf-8"?>
 
 const outFile = join(ROOT, `${pkg.name}-${pkg.version}.vsix`);
 const output = createWriteStream(outFile);
-const archive = archiver("zip", { zlib: { level: 9 } });
+const archive = new ZipArchive({ zlib: { level: 9 } });
 
 archive.pipe(output);
 archive.append(MANIFEST, { name: "extension.vsixmanifest" });
