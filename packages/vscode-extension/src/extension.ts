@@ -10,11 +10,16 @@ import { TourEditor } from "./tourEditor";
 let running: RunningServer | undefined;
 let tunnel: Tunnel | undefined;
 
+function setServerRunning(value: boolean): void {
+  void vscode.commands.executeCommand("setContext", "protofeedback.serverRunning", value);
+}
+
 function workspaceRoot(): string | undefined {
   return vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
 }
 
 export function activate(context: vscode.ExtensionContext): void {
+  setServerRunning(false);
   const root = workspaceRoot();
   const provider = new FeedbackProvider(root);
   context.subscriptions.push(
@@ -77,8 +82,9 @@ async function startCmd(root: string | undefined): Promise<void> {
       const dir = root ?? process.cwd();
       running = await createServer({ dir, dataDir: dir });
     }
+    setServerRunning(true);
     await vscode.env.openExternal(vscode.Uri.parse(running.url));
-    void vscode.window.showInformationMessage(`ProtoFeedback running at ${running.url}`);
+    void vscode.window.showInformationMessage(`ReviewX running at ${running.url}`);
   } catch (err) {
     void vscode.window.showErrorMessage(`Failed to start: ${(err as Error).message}`);
   }
@@ -234,7 +240,8 @@ async function stopCmd(): Promise<void> {
   tunnel = undefined;
   await running?.close();
   running = undefined;
-  void vscode.window.showInformationMessage("ProtoFeedback stopped.");
+  setServerRunning(false);
+  void vscode.window.showInformationMessage("ReviewX stopped.");
 }
 
 /** Read or generate the project's TOFU token from .protofeedback/secret.json. */

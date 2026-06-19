@@ -1,60 +1,132 @@
 {
   "name": "protofeedback-vscode",
-  "displayName": "ProtoFeedback",
+  "displayName": "ReviewX",
   "version": "0.1.0",
-  "private": true,
-  "description": "Share prototypes with a tour + feedback overlay, and review comments in the editor",
+  "description": "Add a live feedback overlay to any prototype — tour, comments, and publish to GitHub Pages",
   "publisher": "protofeedback",
   "engines": {
     "vscode": "^1.85.0"
   },
-  "categories": ["Other"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sanketsao/ReviewX.git"
+  },
+  "license": "MIT",
+  "categories": [
+    "Other"
+  ],
   "main": "./out/extension.js",
   "activationEvents": [],
   "contributes": {
     "commands": [
-      { "command": "protofeedback.start", "title": "ProtoFeedback: Start prototype with overlay" },
-      { "command": "protofeedback.share", "title": "ProtoFeedback: Share prototype (public URL)" },
-      { "command": "protofeedback.publish", "title": "ProtoFeedback: Publish to GitHub Pages", "icon": "$(cloud-upload)" },
-      { "command": "protofeedback.stop", "title": "ProtoFeedback: Stop" },
-      { "command": "protofeedback.editTour", "title": "ProtoFeedback: Edit tour" },
-      { "command": "protofeedback.refresh", "title": "ProtoFeedback: Refresh feedback", "icon": "$(refresh)" },
-      { "command": "protofeedback.resolveItem", "title": "Toggle resolved", "icon": "$(check)" }
+      {
+        "command": "protofeedback.start",
+        "title": "ReviewX: Start prototype with overlay",
+        "icon": "$(play)"
+      },
+      {
+        "command": "protofeedback.share",
+        "title": "ReviewX: Share prototype (public URL)"
+      },
+      {
+        "command": "protofeedback.publish",
+        "title": "ReviewX: Publish to GitHub Pages",
+        "icon": "$(cloud-upload)"
+      },
+      {
+        "command": "protofeedback.stop",
+        "title": "ReviewX: Stop"
+      },
+      {
+        "command": "protofeedback.editTour",
+        "title": "ReviewX: Edit tour"
+      },
+      {
+        "command": "protofeedback.refresh",
+        "title": "ReviewX: Refresh feedback",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "protofeedback.resolveItem",
+        "title": "Toggle resolved",
+        "icon": "$(check)"
+      }
     ],
     "viewsContainers": {
       "activitybar": [
         {
           "id": "protofeedback",
-          "title": "ProtoFeedback",
+          "title": "ReviewX",
           "icon": "$(comment-discussion)"
         }
       ]
     },
     "views": {
       "protofeedback": [
-        { "id": "protofeedback.feedback", "name": "Feedback" }
+        {
+          "id": "protofeedback.feedback",
+          "name": "Feedback"
+        }
       ]
     },
+    "viewsWelcome": [
+      {
+        "view": "protofeedback.feedback",
+        "contents": "Welcome to ReviewX.\n\nStart a local server to preview your prototype with the live feedback and tour overlay.\n\n[$(play) Start with overlay](command:protofeedback.start)\n\nReady to share with your team?\n[$(cloud-upload) Publish to GitHub Pages](command:protofeedback.publish)",
+        "when": "!protofeedback.serverRunning"
+      },
+      {
+        "view": "protofeedback.feedback",
+        "contents": "Overlay is running.\n\nOpen your prototype in a browser and click any element to leave feedback.",
+        "when": "protofeedback.serverRunning"
+      }
+    ],
     "menus": {
       "view/title": [
-        { "command": "protofeedback.refresh", "when": "view == protofeedback.feedback", "group": "navigation" },
-        { "command": "protofeedback.publish", "when": "view == protofeedback.feedback", "group": "navigation" },
-        { "command": "protofeedback.start", "when": "view == protofeedback.feedback", "group": "navigation" }
+        {
+          "command": "protofeedback.refresh",
+          "when": "view == protofeedback.feedback",
+          "group": "navigation"
+        },
+        {
+          "command": "protofeedback.publish",
+          "when": "view == protofeedback.feedback",
+          "group": "navigation"
+        },
+        {
+          "command": "protofeedback.start",
+          "when": "view == protofeedback.feedback && !protofeedback.serverRunning",
+          "group": "navigation"
+        },
+        {
+          "command": "protofeedback.stop",
+          "when": "view == protofeedback.feedback && protofeedback.serverRunning",
+          "group": "navigation"
+        }
       ],
       "view/item/context": [
-        { "command": "protofeedback.resolveItem", "when": "view == protofeedback.feedback && viewItem == feedbackItem", "group": "inline" }
+        {
+          "command": "protofeedback.resolveItem",
+          "when": "view == protofeedback.feedback && viewItem == feedbackItem",
+          "group": "inline"
+        }
       ]
     }
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "watch": "tsc -p tsconfig.json --watch"
+    "watch": "tsc -p tsconfig.json --watch",
+    "bundle": "esbuild src/extension.ts --bundle --external:vscode --external:node:sqlite --platform=node --outfile=out/extension.js --sourcemap",
+    "package": "npm run bundle && node -e \"require('fs').mkdirSync('dist',{recursive:true});require('fs').copyFileSync('../../packages/overlay/dist/reviewx.js','dist/reviewx.js')\" && vsce package --no-dependencies"
   },
   "dependencies": {
     "@protofeedback/server": "0.1.0"
   },
   "devDependencies": {
     "@types/node": "^22.7.0",
-    "@types/vscode": "^1.85.0"
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.2.1",
+    "archiver": "^8.0.0",
+    "esbuild": "^0.24.0"
   }
 }

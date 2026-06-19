@@ -1,4 +1,4 @@
-import { promises as fs } from "fs";
+import { promises as fs, existsSync } from "fs";
 import * as path from "path";
 
 const DEFAULT_CDN = "https://cdn.jsdelivr.net/npm/reviewx@1";
@@ -40,8 +40,12 @@ export interface PublishResult {
   widgetSrc: string;
 }
 
-/** Locate the built reviewx.js snippet bundle from the overlay package. */
+/** Locate the built reviewx.js snippet bundle.
+ *  Inside the packaged VS Code extension, the bundle is copied to dist/reviewx.js
+ *  next to out/extension.js. In the monorepo / CLI, resolve via the workspace package. */
 function reviewxBundlePath(): string {
+  const adjacent = path.join(__dirname, "..", "dist", "reviewx.js");
+  if (existsSync(adjacent)) return adjacent;
   const pkg = require.resolve("@protofeedback/overlay/package.json");
   return path.join(path.dirname(pkg), "dist", "reviewx.js");
 }
