@@ -65,9 +65,16 @@ export function snippetTag(
 }
 
 /** Inject the snippet once, before </body> (falling back to </html> / append). */
-export function injectSnippet(html: string, opts: Parameters<typeof snippetTag>[0]): string {
+export function injectSnippet(
+  html: string,
+  opts: Parameters<typeof snippetTag>[0],
+  seed?: Record<string, unknown>
+): string {
   if (/data-reviewx\b/.test(html)) return html; // already has it
-  const t = snippetTag(opts);
+  const seedScript = seed && Object.keys(seed).length
+    ? `<script>window.ReviewX = ${JSON.stringify(seed)};</script>\n`
+    : "";
+  const t = seedScript + snippetTag(opts);
   if (html.includes("</body>")) return html.replace("</body>", `${t}\n</body>`);
   if (html.includes("</html>")) return html.replace("</html>", `${t}\n</html>`);
   return `${html}\n${t}\n`;
@@ -94,6 +101,23 @@ export async function staticExport(opts: PublishOptions): Promise<PublishResult>
   if (!stat?.isDirectory()) throw new Error(`source is not a directory: ${src}`);
   if (out === src) throw new Error("out dir must differ from source");
 
+  // Read builder-authored data BEFORE excluding .protofeedback, so reviewers
+  // see the tour and pre-annotations on the published site without an inbox.
+  const pfDir = path.join(src, ".protofeedback");
+  const readJson = async <T>(file: string): Promise<T | undefined> => {
+    try { return JSON.parse(await fs.readFile(path.join(pfDir, file), "utf8")) as T; }
+    catch { return undefined; }
+  };
+  const [seedTour, seedFeedback, seedSettings] = await Promise.all([
+    readJson<unknown[]>("tour.json"),
+    readJson<unknown[]>("feedback.json"),
+    readJson<Record<string, unknown>>("settings.json"),
+  ]);
+  const seed: Record<string, unknown> = {};
+  if (seedTour?.length) seed.seed = { ...(seed.seed as object | undefined), tour: seedTour };
+  if (seedFeedback?.length) seed.seed = { ...(seed.seed as object | undefined), feedback: seedFeedback };
+  if (seedSettings) seed.seed = { ...(seed.seed as object | undefined), settings: seedSettings };
+
   // Never publish local feedback data, VCS, deps, or OS junk — the widget talks
   // to the inbox, and .protofeedback/*.json would otherwise be exposed publicly.
   const EXCLUDE = new Set([".protofeedback", ".git", "node_modules", ".DS_Store"]);
@@ -108,7 +132,7 @@ export async function staticExport(opts: PublishOptions): Promise<PublishResult>
   for (const f of files) {
     if (/\.html?$/i.test(f)) {
       const html = await fs.readFile(f, "utf8");
-      await fs.writeFile(f, injectSnippet(html, opts), "utf8");
+      await fs.writeFile(f, injectSnippet(html, opts, seed), "utf8");
       htmlFiles++;
     }
   }
