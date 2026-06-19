@@ -72,7 +72,7 @@
     "viewsWelcome": [
       {
         "view": "protofeedback.feedback",
-        "contents": "Welcome to ReviewX.\n\nStart a local server to preview your prototype with the live feedback and tour overlay.\n\n[$(play) Start with overlay](command:protofeedback.start)\n\nReady to share with your team?\n[$(cloud-upload) Publish to GitHub Pages](command:protofeedback.publish)",
+        "contents": "Welcome to ReviewX.\n\nPreview your prototype with a live overlay — author a guided tour, pin feedback, then publish for your team to review.\n\n[$(play) Start with overlay](command:protofeedback.start)\n\nReady to share?\n[$(cloud-upload) Publish to GitHub Pages](command:protofeedback.publish)\n\n*Requires a public GitHub repo (free) or GitHub Pro/Team for private repos.*",
         "when": "!protofeedback.serverRunning"
       },
       {

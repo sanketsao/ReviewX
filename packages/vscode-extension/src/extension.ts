@@ -176,6 +176,16 @@ async function publishCmd(root: string | undefined): Promise<void> {
     );
   }
 
+  // Upfront expectation: Pages requires a public repo (free) or GitHub Pro/Team (private).
+  const proceed = await vscode.window.showInformationMessage(
+    `Publish to ${repo.owner}/${repo.repo} via GitHub Pages.\n\n` +
+    `GitHub Pages is free for public repositories. Private repos require GitHub Pro or Team. ` +
+    `If your repo is private, make it public first: github.com/${repo.owner}/${repo.repo} → Settings → Change visibility.`,
+    { modal: true },
+    "Publish"
+  );
+  if (proceed !== "Publish") return;
+
   const cfg = await readConfig(root);
   let source = await detectSource(root, cfg);
   if (!source) {
