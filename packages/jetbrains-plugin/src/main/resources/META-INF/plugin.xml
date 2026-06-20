@@ -1,0 +1,42 @@
+<idea-plugin>
+    <id>app.reviewsx.jetbrains</id>
+    <name>ReviewSX</name>
+    <vendor email="hello@reviewsx.app" url="https://reviewsx.app">ReviewSX</vendor>
+
+    <description><![CDATA[
+        Share prototypes instantly. Author a guided tour, collect pinned feedback,
+        and publish — without your reviewers needing to clone the repo.
+        <br/><br/>
+        ReviewSX injects a zero-install overlay into your running prototype. Start
+        the local server from the IDE, share a public link, and watch feedback land
+        in the ReviewSX tool window.
+    ]]></description>
+
+    <!-- WebStorm, IntelliJ IDEA, PyCharm, etc. all build on the platform module. -->
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow id="ReviewSX"
+                    anchor="right"
+                    icon="AllIcons.Toolwindows.ToolWindowMessages"
+                    factoryClass="app.reviewsx.jetbrains.ReviewSXToolWindowFactory"/>
+    </extensions>
+
+    <actions>
+        <group id="ReviewSX.Actions" text="ReviewSX" popup="true">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+            <action id="ReviewSX.Start"
+                    class="app.reviewsx.jetbrains.actions.StartAction"
+                    text="Start Prototype with Overlay"
+                    description="Serve the prototype with the ReviewSX overlay injected."/>
+            <action id="ReviewSX.Share"
+                    class="app.reviewsx.jetbrains.actions.ShareAction"
+                    text="Share via Tunnel"
+                    description="Open a public URL to the running prototype."/>
+            <action id="ReviewSX.Publish"
+                    class="app.reviewsx.jetbrains.actions.PublishAction"
+                    text="Publish to GitHub Pages"
+                    description="Static-export the prototype and publish it."/>
+        </group>
+    </actions>
+</idea-plugin>
