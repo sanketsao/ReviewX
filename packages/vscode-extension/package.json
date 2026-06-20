@@ -1,9 +1,9 @@
 {
-  "name": "protofeedback-vscode",
+  "name": "prototype-review",
   "displayName": "ReviewSX",
   "version": "0.1.0",
   "description": "Share prototypes instantly. Guided tours, pinned feedback, and one-click publish — designed for builders who need fast reviews without the repo setup.",
-  "publisher": "protofeedback",
+  "publisher": "reviewsx",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -154,8 +154,8 @@
     "watch": "tsc -p tsconfig.json --watch",
     "bundle": "esbuild src/extension.ts --bundle --external:vscode --external:node:sqlite --platform=node --outfile=out/extension.js --sourcemap",
     "package": "npm run bundle && node -e \"const fs=require('fs');fs.mkdirSync('dist',{recursive:true});fs.copyFileSync('../../packages/overlay/dist/reviewsx.js','dist/reviewsx.js');fs.copyFileSync('../../packages/overlay/dist/overlay.js','dist/overlay.js')\" && node build-vsix.mjs",
-    "publish:ovsx": "ovsx publish protofeedback-vscode-0.1.0.vsix",
-    "publish:vsce": "vsce publish --packagePath protofeedback-vscode-0.1.0.vsix"
+    "publish:ovsx": "ovsx publish prototype-review-0.1.0.vsix",
+    "publish:vsce": "vsce publish --packagePath prototype-review-0.1.0.vsix"
   },
   "dependencies": {
     "@protofeedback/server": "0.1.0"

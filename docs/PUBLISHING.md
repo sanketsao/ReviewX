@@ -11,19 +11,22 @@ Cursor and Windsurf **cannot** use the Microsoft Marketplace — they pull from
 OpenVSX. So to reach the vibe-coding audience (who mostly use Cursor/Windsurf),
 **OpenVSX is the priority.**
 
-## Permanent identity (decide before first publish)
+## Permanent identity (locked)
 
-Once published, `publisher.name` is **permanent**. The extension is currently:
+The extension's marketplace ID is **permanent once published**:
 
 ```
-publisher: protofeedback
-name:       protofeedback-vscode
-→ ID:       protofeedback.protofeedback-vscode
+publisher: reviewsx
+name:       prototype-review
+→ ID:       reviewsx.prototype-review
 ```
 
-Recommended before publishing: align with the brand, e.g. `reviewsx.reviewsx`.
-The internal command IDs (`protofeedback.*`) are NOT shown in the marketplace and
-can stay as-is — only `publisher`, `name`, and `displayName` are user-facing.
+The `name` ("prototype-review") is keyword-rich for marketplace search. The
+internal command IDs (`protofeedback.*`) are NOT shown in the marketplace and
+stay as-is — only `publisher`, `name`, and `displayName` are user-facing.
+
+> Before first publish, register the **`reviewsx`** publisher handle on both
+> OpenVSX and the VS Code Marketplace.
 
 ---
 
@@ -36,7 +39,7 @@ can stay as-is — only `publisher`, `name`, and `displayName` are user-facing.
    ```bash
    cd packages/vscode-extension
    npx ovsx create-namespace <publisher> -p <TOKEN>
-   npx ovsx publish protofeedback-vscode-0.1.0.vsix -p <TOKEN>
+   npx ovsx publish prototype-review-0.1.0.vsix -p <TOKEN>
    ```
 
 ### VS Code Marketplace
@@ -45,7 +48,7 @@ can stay as-is — only `publisher`, `name`, and `displayName` are user-facing.
 3. Publish:
    ```bash
    cd packages/vscode-extension
-   npx vsce publish --packagePath protofeedback-vscode-0.1.0.vsix -p <TOKEN>
+   npx vsce publish --packagePath prototype-review-0.1.0.vsix -p <TOKEN>
    ```
 
 > Tokens are secrets — never commit them. Pass them on the command line or via
@@ -63,8 +66,8 @@ cd packages/vscode-extension
 npm run package          # bundles + copies overlay bundles + builds the VSIX
 
 # Then publish to both registries:
-npx ovsx publish protofeedback-vscode-0.1.0.vsix -p $OVSX_PAT
-npx vsce publish --packagePath protofeedback-vscode-0.1.0.vsix -p $VSCE_PAT
+npx ovsx publish prototype-review-0.1.0.vsix -p $OVSX_PAT
+npx vsce publish --packagePath prototype-review-0.1.0.vsix -p $VSCE_PAT
 ```
 
 Bump `version` in `package.json` before each publish — registries reject
@@ -78,7 +81,7 @@ You don't need to publish to test. Both editors install a local VSIX directly:
 
 1. Open Cursor/Windsurf.
 2. `Cmd+Shift+P` → **Extensions: Install from VSIX…**
-3. Pick `packages/vscode-extension/protofeedback-vscode-0.1.0.vsix`.
+3. Pick `packages/vscode-extension/prototype-review-0.1.0.vsix`.
 4. Reload when prompted.
 
 The VSIX is the identical format VS Code uses, and the extension targets
