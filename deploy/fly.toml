@@ -1,0 +1,36 @@
+# ReviewX shared inbox on Fly.io.
+# One small instance collects feedback for all BYO (GitHub Pages) prototypes.
+#   1. brew install flyctl && fly auth login
+#   2. fly launch --copy-config --no-deploy   (pick a globally-unique app name)
+#   3. fly volumes create reviewx_data --size 1 --region <your-region>
+#   4. fly deploy
+#   5. (optional) fly secrets set REVIEWX_ADMIN_TOKEN=<random-secret>
+# Your inbox URL is then https://<app-name>.fly.dev  → use it as --endpoint.
+
+app = "reviewx-inbox"          # change to your unique name
+primary_region = "iad"
+
+[build]
+  dockerfile = "../Dockerfile"
+
+[env]
+  HOST = "0.0.0.0"
+  PORT = "4400"
+  REVIEWX_STORAGE = "sqlite"
+  REVIEWX_DATA_DIR = "/data"
+  REVIEWX_WRITE_RATE_LIMIT = "60"
+
+[http_service]
+  internal_port = 4400
+  force_https = true
+  auto_stop_machines = true     # scale to zero when idle → ~$0 at low volume
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[mounts]]
+  source = "reviewx_data"       # persists the SQLite DB across restarts
+  destination = "/data"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

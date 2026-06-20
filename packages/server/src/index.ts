@@ -5,4 +5,8 @@ export type { InboxOptions, RunningInbox } from "./inbox";
 export { Store } from "./store";
 export { startTunnel } from "./tunnel";
 export type { Tunnel } from "./tunnel";
+export { staticExport, snippetTag, injectSnippet } from "./publish";
+export type { PublishOptions, PublishResult } from "./publish";
+export { deployGitHubPages, resolveGitHubToken } from "./gh-pages";
+export type { GitHubPagesOptions, GitHubPagesResult } from "./gh-pages";
 export * from "./types";

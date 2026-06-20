@@ -1,6 +1,5 @@
 import * as path from "path";
 import { Store, type StorageAdapter } from "./store";
-import { SqliteDatabase, SqliteStore } from "./sqlite-store";
 import { migratePostgres, PostgresStore, type PgPool } from "./pg-store";
 
 export type StorageBackend = "file" | "sqlite" | "postgres";
@@ -47,26 +46,6 @@ class FileStorageProvider implements StorageProvider {
   }
 }
 
-class SqliteStorageProvider implements StorageProvider {
-  readonly label: string;
-  private cache = new Map<string, SqliteStore>();
-  private shared: SqliteDatabase;
-  constructor(dbPath: string) {
-    this.shared = new SqliteDatabase(dbPath);
-    this.label = `sqlite (${dbPath})`;
-  }
-  for(project: string): StorageAdapter {
-    let s = this.cache.get(project);
-    if (!s) {
-      s = new SqliteStore(this.shared, project);
-      this.cache.set(project, s);
-    }
-    return s;
-  }
-  async close(): Promise<void> {
-    this.shared.close();
-  }
-}
 
 class PostgresStorageProvider implements StorageProvider {
   readonly label: string;
@@ -121,7 +100,21 @@ export async function createStorageProvider(opts: StorageOptions): Promise<Stora
   }
   if (opts.backend === "sqlite") {
     const dbPath = opts.sqlitePath || path.join(opts.dataDir, "reviewx.sqlite");
-    return new SqliteStorageProvider(dbPath);
+    // Dynamic import so node:sqlite is only required when sqlite is actually used.
+    // VS Code's embedded Node (18/20) doesn't have node:sqlite; the extension
+    // never calls createInbox so this path is never hit inside the extension.
+    const { SqliteDatabase, SqliteStore } = await import("./sqlite-store");
+    const shared = new SqliteDatabase(dbPath);
+    const cache = new Map<string, InstanceType<typeof SqliteStore>>();
+    return {
+      label: `sqlite (${dbPath})`,
+      for(project: string): StorageAdapter {
+        let s = cache.get(project);
+        if (!s) { s = new SqliteStore(shared, project); cache.set(project, s); }
+        return s;
+      },
+      async close() { shared.close(); },
+    };
   }
   return new FileStorageProvider(opts.dataDir);
 }

@@ -79,7 +79,10 @@ export function httpBackend(base = "/__pf"): Backend {
 // default for "try it" and single-author use; pair with restBackend for sharing.
 // ---------------------------------------------------------------------------
 
-export function localBackend(project: string): Backend {
+export function localBackend(
+  project: string,
+  seed?: ReviewXConfig["seed"]
+): Backend {
   const ns = `reviewx:${project}`;
   const read = <T>(key: string, fallback: T): T => {
     try {
@@ -96,6 +99,33 @@ export function localBackend(project: string): Backend {
       /* quota or disabled storage — ignore */
     }
   };
+
+  // Merge seed items (builder-authored) into localStorage on first visit so
+  // reviewers see the builder's tour and pre-annotations without an inbox.
+  // Seed items are identified by id; reviewer additions win on conflict.
+  const initFromSeed = (): void => {
+    if (!seed) return;
+    const seededKey = `${ns}:_seeded`;
+    const seedHash = JSON.stringify({ t: seed.tour?.length, f: seed.feedback?.length });
+    if (localStorage.getItem(seededKey) === seedHash) return; // already applied
+    if (seed.feedback?.length) {
+      const existing = read<Feedback[]>("feedback", []);
+      const byId = new Map(seed.feedback.map((f) => [f.id, f]));
+      for (const f of existing) byId.set(f.id, f); // reviewer edits win
+      write("feedback", [...byId.values()]);
+    }
+    if (seed.tour?.length) {
+      const existing = read<TourStep[]>("tour", []);
+      if (!existing.length) write("tour", seed.tour);
+    }
+    if (seed.settings) {
+      const existing = read<Partial<Settings>>("settings", {});
+      if (!Object.keys(existing).length) write("settings", seed.settings);
+    }
+    try { localStorage.setItem(seededKey, seedHash); } catch { /* ignore */ }
+  };
+
+  try { initFromSeed(); } catch { /* ignore */ }
 
   return {
     label: "this browser (local)",
@@ -225,6 +255,12 @@ export interface ReviewXConfig {
   role?: "author" | "reviewer";
   /** Shared secret authorizing author ops against the inbox (author copy only). */
   token?: string;
+  /**
+   * Builder-authored data baked into the published page at export time.
+   * localBackend uses this as the baseline if the reviewer's localStorage is empty.
+   * restBackend ignores it (the inbox is authoritative).
+   */
+  seed?: { tour?: TourStep[]; feedback?: Feedback[]; settings?: Settings };
 }
 
 /** Merge window.ReviewX with <script data-*> attributes on the snippet tag. */
@@ -255,5 +291,5 @@ export function pickBackend(cfg: ReviewXConfig): Backend {
   const kind = cfg.backend || (cfg.endpoint ? "rest" : "local");
   if (kind === "http") return httpBackend();
   if (kind === "rest" && cfg.endpoint) return restBackend(cfg.endpoint, project, cfg.token);
-  return localBackend(project);
+  return localBackend(project, cfg.seed);
 }

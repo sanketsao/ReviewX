@@ -24,6 +24,12 @@ const MIME: Record<string, string> = {
 };
 
 function overlayBundlePath(): string {
+  // Inside the packaged VS Code extension, overlay.js is copied to dist/ next to out/.
+  const adjacent = path.join(__dirname, "..", "dist", "overlay.js");
+  try {
+    if (require("fs").existsSync(adjacent)) return adjacent;
+  } catch { /* ignore */ }
+  // Workspace / CLI: resolve from the overlay package.
   try {
     const pkg = require.resolve("@protofeedback/overlay/package.json");
     return path.join(path.dirname(pkg), "dist", "overlay.js");

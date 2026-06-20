@@ -98,7 +98,10 @@ export const STYLES = `
 .pf-row { display: flex; gap: 8px; justify-content: space-between; align-items: center; margin-top: 8px; }
 .pf-primary { background: #6366f1; color: #fff; border: 0; border-radius: 6px; padding: 7px 14px; cursor: pointer; font-weight: 500; }
 .pf-primary:hover { background: #4f46e5; }
+.pf-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 .pf-ghost { background: transparent; border: 0; color: #6b7280; cursor: pointer; padding: 7px 10px; }
+.pf-form-err { color: #e53e3e; font-size: 12px; margin-top: 4px; }
+.pf-form-err.hidden { display: none; }
 .pf-ghost:hover { color: #111827; }
 .pf-meta { color: #6b7280; font-size: 11px; margin-bottom: 6px; }
 .pf-comment-text { white-space: pre-wrap; line-height: 1.4; }
