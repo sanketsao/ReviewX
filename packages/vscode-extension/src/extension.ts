@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import * as path from "path";
 import * as os from "os";
 import { promises as fs } from "fs";
-import { createServer, startTunnel, staticExport, deployGitHubPages } from "@protofeedback/server";
+import { createServer, startTunnel, startTailscaleTunnel, staticExport, deployGitHubPages } from "@protofeedback/server";
 import type { RunningServer, Tunnel, Feedback } from "@protofeedback/server";
 import { FeedbackProvider } from "./feedbackView";
 import { TourEditor } from "./tourEditor";
@@ -103,24 +103,42 @@ async function shareCmd(): Promise<void> {
     return;
   }
   await vscode.window.withProgress(
-    { location: vscode.ProgressLocation.Notification, title: "Opening public URL…" },
+    { location: vscode.ProgressLocation.Notification, title: "Opening public URL via Tailscale Funnel…" },
     async () => {
       try {
-        tunnel = await startTunnel(running!.port);
-        void showShareUrl(tunnel.url);
-      } catch (err) {
-        void vscode.window.showErrorMessage((err as Error).message);
+        tunnel = await startTailscaleTunnel(running!.port);
+        void showShareUrl(tunnel.url, "tailscale");
+      } catch (tailscaleErr) {
+        // Tailscale not available — fall back to cloudflared quick tunnel.
+        try {
+          tunnel = await startTunnel(running!.port);
+          void showShareUrl(tunnel.url, "cloudflare");
+        } catch (cfErr) {
+          // Both failed — show the Tailscale error (primary) with a hint.
+          void vscode.window.showErrorMessage(
+            `Could not open a public URL.\n\n` +
+            `Tailscale: ${(tailscaleErr as Error).message}\n\n` +
+            `Cloudflare fallback: ${(cfErr as Error).message}\n\n` +
+            `Install Tailscale (tailscale.com/download) or cloudflared (brew install cloudflared).`
+          );
+        }
       }
     }
   );
 }
 
-async function showShareUrl(url: string): Promise<void> {
+async function showShareUrl(url: string, via: "tailscale" | "cloudflare" = "tailscale"): Promise<void> {
+  const label = via === "tailscale" ? "Tailscale Funnel (stable)" : "Cloudflare Tunnel (ephemeral)";
   const pick = await vscode.window.showInformationMessage(
-    `Public URL: ${url}`,
-    "Copy URL"
+    `Public URL (${label}): ${url}`,
+    "Copy URL",
+    "Copy as Markdown"
   );
-  if (pick === "Copy URL") await vscode.env.clipboard.writeText(url);
+  if (pick === "Copy URL") {
+    await vscode.env.clipboard.writeText(url);
+  } else if (pick === "Copy as Markdown") {
+    await vscode.env.clipboard.writeText(`[Review prototype](${url})`);
+  }
 }
 
 interface ReviewxConfig {
@@ -151,81 +169,104 @@ async function writeConfig(root: string, patch: Partial<ReviewxConfig>): Promise
   await fs.writeFile(configFile, JSON.stringify(merged, null, 2), "utf8");
 }
 
+// The ReviewX-operated shared inbox. Each project is isolated by a unique
+// project key + TOFU token, so a single deployment serves all builders at
+// essentially zero marginal cost.
+const REVIEWX_INBOX = "https://inbox.reviewx.dev";
+
 async function setupInboxCmd(root: string | undefined, provider: FeedbackProvider): Promise<void> {
   if (!root) return void vscode.window.showWarningMessage("Open your prototype folder first.");
 
-  const current = (await readConfig(root)).publish?.endpoint;
+  const cfg = await readConfig(root);
+  const current = cfg.publish?.endpoint;
+  const usingHosted = current === REVIEWX_INBOX;
+
   const options: vscode.QuickPickItem[] = [
     {
-      label: "$(globe) Enter inbox URL",
-      description: "I already have a ReviewX inbox deployed",
-      detail: current ? `Current: ${current}` : undefined,
+      label: "$(cloud) Use ReviewX hosted inbox",
+      description: "Recommended · free for indie builders",
+      detail: usingHosted
+        ? "✓ Active — all reviewer feedback goes here"
+        : "Feedback from all reviewers collected centrally. Each project is isolated by a unique key.",
     },
     {
-      label: "$(terminal) Deploy to Fly.io",
-      description: "Free tier — one-command self-host with persistent SQLite storage",
+      label: "$(server) Self-host (enterprise)",
+      description: "Run your own inbox — full data control, any region",
+      detail: "Deploy the open-source inbox server on your own infrastructure. One Docker image, one command.",
     },
     {
       label: "$(x) Clear inbox endpoint",
-      description: "Revert to per-browser feedback (no shared storage)",
+      description: "Per-browser only — reviewers keep feedback in localStorage",
     },
   ];
 
   const pick = await vscode.window.showQuickPick(options, {
-    placeHolder: "How would you like to set up the shared inbox?",
+    placeHolder: "Where should reviewer feedback be collected?",
   });
   if (!pick) return;
 
   if (pick.label.includes("Clear")) {
-    const cfg = await readConfig(root);
     if (cfg.publish) delete cfg.publish.endpoint;
     await writeConfig(root, cfg);
     await provider.refresh();
-    void vscode.window.showInformationMessage("Inbox endpoint cleared. Feedback will be per-browser until you set one.");
+    void vscode.window.showInformationMessage(
+      "Inbox cleared. Reviewer feedback will stay in each browser until you set an inbox endpoint."
+    );
     return;
   }
 
-  if (pick.label.includes("Fly.io")) {
+  if (pick.label.includes("Self-host")) {
     const steps = [
       "1. Install flyctl:  https://fly.io/docs/hands-on/install-flyctl/",
       "2. fly auth login",
-      "3. From the repo root:",
+      "3. From the ReviewX repo root:",
       "   fly launch --config deploy/fly/fly.toml --dockerfile deploy/fly/Dockerfile",
       "   fly volumes create reviewx_data --size 1 --region iad",
       "   fly secrets set REVIEWX_ADMIN_TOKEN=$(openssl rand -hex 16)",
       "   fly deploy --config deploy/fly/fly.toml --dockerfile deploy/fly/Dockerfile",
-      "4. Copy your app URL (https://<app>.fly.dev) and come back here.",
+      "4. Your inbox URL is  https://<app-name>.fly.dev",
+      "   Come back here and choose 'Enter custom URL'.",
     ].join("\n");
 
     const action = await vscode.window.showInformationMessage(
-      "Deploy ReviewX inbox to Fly.io (free tier):\n\n" + steps,
+      "Self-hosted ReviewX inbox\n\n" + steps +
+      "\n\nData stays entirely on your infrastructure. " +
+      "Same Docker image, same API — reviewers and the VS Code extension don't know the difference.",
       { modal: true },
-      "Open fly.io docs",
-      "I have the URL"
+      "Open Fly.io docs",
+      "Enter custom URL"
     );
-    if (action === "Open fly.io docs") {
-      await vscode.env.openExternal(vscode.Uri.parse("https://fly.io/docs/hands-on/install-flyctl/"));
+    if (action === "Open Fly.io docs") {
+      void vscode.env.openExternal(vscode.Uri.parse("https://fly.io/docs/hands-on/install-flyctl/"));
+      return;
     }
-    if (!action || action === "Open fly.io docs") return;
+    if (action !== "Enter custom URL") return;
+
+    const url = await vscode.window.showInputBox({
+      prompt: "Self-hosted inbox URL",
+      placeHolder: "https://your-app.fly.dev",
+      value: current && current !== REVIEWX_INBOX ? current : "",
+      validateInput: (v) => (v && v.startsWith("http")) ? null : "Must start with http:// or https://",
+    });
+    if (!url) return;
+
+    await writeConfig(root, { publish: { endpoint: url } });
+    await provider.refresh();
+    void vscode.window.showInformationMessage(
+      `Self-hosted inbox set: ${url}`,
+      "Publish now"
+    ).then((a) => { if (a === "Publish now") void vscode.commands.executeCommand("protofeedback.publish"); });
+    return;
   }
 
-  // Both "Enter URL" and "I have the URL" fall through here.
-  const url = await vscode.window.showInputBox({
-    prompt: "Inbox URL",
-    placeHolder: "https://your-app.fly.dev",
-    value: current,
-    validateInput: (v) => (v && v.startsWith("http")) ? null : "Must start with http:// or https://",
-  });
-  if (!url) return;
-
-  await writeConfig(root, { publish: { endpoint: url } });
+  // "Use ReviewX hosted inbox" — just point at the shared endpoint.
+  await writeConfig(root, { publish: { endpoint: REVIEWX_INBOX } });
   await provider.refresh();
   void vscode.window.showInformationMessage(
-    `Inbox set: ${url}\n\nYour next Publish will embed this endpoint so reviewer feedback is collected centrally.`,
+    `Connected to ReviewX inbox.\n\nYour next Publish will embed this endpoint. ` +
+    `Reviewer feedback will be collected centrally, isolated to your project key.`,
     "Publish now"
-  ).then((action) => {
-    if (action === "Publish now") void vscode.commands.executeCommand("protofeedback.publish");
-  });
+  ).then((a) => { if (a === "Publish now") void vscode.commands.executeCommand("protofeedback.publish"); });
 }
 
 /** Parse `owner/repo` from a GitHub remote URL (https or ssh). */

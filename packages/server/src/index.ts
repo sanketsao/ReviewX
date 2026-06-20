@@ -3,7 +3,7 @@ export type { RunningServer } from "./server";
 export { createInbox } from "./inbox";
 export type { InboxOptions, RunningInbox } from "./inbox";
 export { Store } from "./store";
-export { startTunnel } from "./tunnel";
+export { startTunnel, startTailscaleTunnel } from "./tunnel";
 export type { Tunnel } from "./tunnel";
 export { staticExport, snippetTag, injectSnippet } from "./publish";
 export type { PublishOptions, PublishResult } from "./publish";

@@ -26,7 +26,8 @@
       },
       {
         "command": "protofeedback.share",
-        "title": "ReviewX: Share prototype (public URL)"
+        "title": "ReviewX: Share via Tailscale Funnel",
+        "icon": "$(broadcast)"
       },
       {
         "command": "protofeedback.publish",
@@ -82,7 +83,7 @@
       },
       {
         "view": "protofeedback.feedback",
-        "contents": "Overlay is running.\n\nOpen your prototype in a browser and click any element to leave feedback.\n\n[$(server) Set up shared inbox](command:protofeedback.setupInbox)",
+        "contents": "Overlay is running.\n\nOpen your prototype in a browser and click any element to leave feedback.\n\n[$(broadcast) Share via Tailscale Funnel](command:protofeedback.share)\n\n[$(server) Set up shared inbox](command:protofeedback.setupInbox)",
         "when": "protofeedback.serverRunning"
       }
     ],
@@ -91,6 +92,11 @@
         {
           "command": "protofeedback.refresh",
           "when": "view == protofeedback.feedback",
+          "group": "navigation"
+        },
+        {
+          "command": "protofeedback.share",
+          "when": "view == protofeedback.feedback && protofeedback.serverRunning",
           "group": "navigation"
         },
         {
