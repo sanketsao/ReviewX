@@ -6,7 +6,7 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 
 # Install dependencies (workspace-aware)
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json tsconfig.base.json ./
 COPY packages/overlay/package.json ./packages/overlay/
 COPY packages/server/package.json ./packages/server/
 RUN npm ci --include=optional
