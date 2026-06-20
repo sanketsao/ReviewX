@@ -172,7 +172,7 @@ async function writeConfig(root: string, patch: Partial<ReviewxConfig>): Promise
 // The ReviewX-operated shared inbox. Each project is isolated by a unique
 // project key + TOFU token, so a single deployment serves all builders at
 // essentially zero marginal cost.
-const REVIEWX_INBOX = "https://inbox.reviewx.dev";
+const REVIEWX_INBOX = "https://inbox.reviewsx.app";
 
 async function setupInboxCmd(root: string | undefined, provider: FeedbackProvider): Promise<void> {
   if (!root) return void vscode.window.showWarningMessage("Open your prototype folder first.");
