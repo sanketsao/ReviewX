@@ -50,6 +50,11 @@
         "command": "protofeedback.resolveItem",
         "title": "Toggle resolved",
         "icon": "$(check)"
+      },
+      {
+        "command": "protofeedback.setupInbox",
+        "title": "ReviewX: Set up shared inbox",
+        "icon": "$(server)"
       }
     ],
     "viewsContainers": {
@@ -77,7 +82,7 @@
       },
       {
         "view": "protofeedback.feedback",
-        "contents": "Overlay is running.\n\nOpen your prototype in a browser and click any element to leave feedback.",
+        "contents": "Overlay is running.\n\nOpen your prototype in a browser and click any element to leave feedback.\n\n[$(server) Set up shared inbox](command:protofeedback.setupInbox)",
         "when": "protofeedback.serverRunning"
       }
     ],
@@ -85,6 +90,11 @@
       "view/title": [
         {
           "command": "protofeedback.refresh",
+          "when": "view == protofeedback.feedback",
+          "group": "navigation"
+        },
+        {
+          "command": "protofeedback.setupInbox",
           "when": "view == protofeedback.feedback",
           "group": "navigation"
         },

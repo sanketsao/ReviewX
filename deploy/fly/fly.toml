@@ -1,0 +1,37 @@
+# ReviewX shared inbox — Fly.io configuration
+# Deploy: fly launch (first time) OR fly deploy (subsequent)
+# Run from the MONOREPO ROOT, e.g.:
+#   fly launch --config deploy/fly/fly.toml --dockerfile deploy/fly/Dockerfile
+#   fly deploy  --config deploy/fly/fly.toml --dockerfile deploy/fly/Dockerfile
+
+# 'fly launch' will replace this with your chosen app name.
+# app = "reviewx-inbox-yourname"
+primary_region = "iad"
+
+[build]
+  dockerfile = "deploy/fly/Dockerfile"
+
+[http_service]
+  internal_port = 4400
+  force_https   = true
+  auto_stop_machines  = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[vm]]
+  memory   = "256mb"
+  cpu_kind = "shared"
+  cpus     = 1
+
+# SQLite data persisted on a Fly volume.
+# Create it once: fly volumes create reviewx_data --size 1 --region iad
+[[mounts]]
+  source      = "reviewx_data"
+  destination = "/data"
+
+[env]
+  HOST                = "0.0.0.0"
+  REVIEWX_STORAGE     = "sqlite"
+  REVIEWX_DATA_DIR    = "/data"
+  # Set secrets via: fly secrets set REVIEWX_ADMIN_TOKEN=<long-random-string>
+  # REVIEWX_ADMIN_TOKEN authorises resolve/edit/export for all projects.

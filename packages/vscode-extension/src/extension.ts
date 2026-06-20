@@ -52,6 +52,9 @@ export function activate(context: vscode.ExtensionContext): void {
     }),
     vscode.commands.registerCommand("protofeedback.resolveItem", (node: unknown) =>
       resolveCmd(root, node, provider)
+    ),
+    vscode.commands.registerCommand("protofeedback.setupInbox", () =>
+      setupInboxCmd(root, provider)
     )
   );
 }
@@ -132,6 +135,97 @@ async function readConfig(root: string): Promise<ReviewxConfig> {
   } catch {
     return {};
   }
+}
+
+async function writeConfig(root: string, patch: Partial<ReviewxConfig>): Promise<void> {
+  const configDir = path.join(root, ".reviewx");
+  const configFile = path.join(configDir, "config.json");
+  let existing: ReviewxConfig = {};
+  try { existing = JSON.parse(await fs.readFile(configFile, "utf8")); } catch { /* new */ }
+  const merged: ReviewxConfig = {
+    ...existing,
+    ...patch,
+    publish: { ...existing.publish, ...patch.publish },
+  };
+  await fs.mkdir(configDir, { recursive: true });
+  await fs.writeFile(configFile, JSON.stringify(merged, null, 2), "utf8");
+}
+
+async function setupInboxCmd(root: string | undefined, provider: FeedbackProvider): Promise<void> {
+  if (!root) return void vscode.window.showWarningMessage("Open your prototype folder first.");
+
+  const current = (await readConfig(root)).publish?.endpoint;
+  const options: vscode.QuickPickItem[] = [
+    {
+      label: "$(globe) Enter inbox URL",
+      description: "I already have a ReviewX inbox deployed",
+      detail: current ? `Current: ${current}` : undefined,
+    },
+    {
+      label: "$(terminal) Deploy to Fly.io",
+      description: "Free tier — one-command self-host with persistent SQLite storage",
+    },
+    {
+      label: "$(x) Clear inbox endpoint",
+      description: "Revert to per-browser feedback (no shared storage)",
+    },
+  ];
+
+  const pick = await vscode.window.showQuickPick(options, {
+    placeHolder: "How would you like to set up the shared inbox?",
+  });
+  if (!pick) return;
+
+  if (pick.label.includes("Clear")) {
+    const cfg = await readConfig(root);
+    if (cfg.publish) delete cfg.publish.endpoint;
+    await writeConfig(root, cfg);
+    await provider.refresh();
+    void vscode.window.showInformationMessage("Inbox endpoint cleared. Feedback will be per-browser until you set one.");
+    return;
+  }
+
+  if (pick.label.includes("Fly.io")) {
+    const steps = [
+      "1. Install flyctl:  https://fly.io/docs/hands-on/install-flyctl/",
+      "2. fly auth login",
+      "3. From the repo root:",
+      "   fly launch --config deploy/fly/fly.toml --dockerfile deploy/fly/Dockerfile",
+      "   fly volumes create reviewx_data --size 1 --region iad",
+      "   fly secrets set REVIEWX_ADMIN_TOKEN=$(openssl rand -hex 16)",
+      "   fly deploy --config deploy/fly/fly.toml --dockerfile deploy/fly/Dockerfile",
+      "4. Copy your app URL (https://<app>.fly.dev) and come back here.",
+    ].join("\n");
+
+    const action = await vscode.window.showInformationMessage(
+      "Deploy ReviewX inbox to Fly.io (free tier):\n\n" + steps,
+      { modal: true },
+      "Open fly.io docs",
+      "I have the URL"
+    );
+    if (action === "Open fly.io docs") {
+      await vscode.env.openExternal(vscode.Uri.parse("https://fly.io/docs/hands-on/install-flyctl/"));
+    }
+    if (!action || action === "Open fly.io docs") return;
+  }
+
+  // Both "Enter URL" and "I have the URL" fall through here.
+  const url = await vscode.window.showInputBox({
+    prompt: "Inbox URL",
+    placeHolder: "https://your-app.fly.dev",
+    value: current,
+    validateInput: (v) => (v && v.startsWith("http")) ? null : "Must start with http:// or https://",
+  });
+  if (!url) return;
+
+  await writeConfig(root, { publish: { endpoint: url } });
+  await provider.refresh();
+  void vscode.window.showInformationMessage(
+    `Inbox set: ${url}\n\nYour next Publish will embed this endpoint so reviewer feedback is collected centrally.`,
+    "Publish now"
+  ).then((action) => {
+    if (action === "Publish now") void vscode.commands.executeCommand("protofeedback.publish");
+  });
 }
 
 /** Parse `owner/repo` from a GitHub remote URL (https or ssh). */

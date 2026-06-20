@@ -1,0 +1,9 @@
+node_modules
+packages/*/node_modules
+packages/*/dist
+packages/overlay/dist
+**/.git
+**/.DS_Store
+examples/
+deploy/
+*.vsix
