@@ -2,7 +2,7 @@
   "name": "protofeedback-vscode",
   "displayName": "ReviewSX",
   "version": "0.1.0",
-  "description": "Add a live feedback overlay to any prototype — tour, comments, and publish to GitHub Pages",
+  "description": "Share prototypes instantly. Guided tours, pinned feedback, and one-click publish — designed for builders who need fast reviews without the repo setup.",
   "publisher": "protofeedback",
   "engines": {
     "vscode": "^1.85.0"
@@ -13,7 +13,27 @@
   },
   "license": "MIT",
   "categories": [
-    "Other"
+    "Other",
+    "Visualization"
+  ],
+  "keywords": [
+    "prototype",
+    "feedback",
+    "review",
+    "tour",
+    "annotations",
+    "share prototype",
+    "publish",
+    "collaboration",
+    "design review",
+    "ux review",
+    "overlay",
+    "localhost share",
+    "github pages",
+    "wireframe",
+    "stakeholder review",
+    "vibe coding",
+    "no-code review"
   ],
   "main": "./out/extension.js",
   "activationEvents": [],
