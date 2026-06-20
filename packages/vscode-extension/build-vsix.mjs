@@ -90,6 +90,16 @@ function addDir(dir, base) {
 
 // Add package.json
 archive.file(join(ROOT, "package.json"), { name: "extension/package.json" });
+// Add LICENSE (required by OpenVSX / recommended by VS Code Marketplace)
+try {
+  statSync(join(ROOT, "LICENSE"));
+  archive.file(join(ROOT, "LICENSE"), { name: "extension/LICENSE" });
+} catch { /* no LICENSE file — skip */ }
+// Add README (becomes the marketplace listing page) if present
+try {
+  statSync(join(ROOT, "README.md"));
+  archive.file(join(ROOT, "README.md"), { name: "extension/README.md" });
+} catch { /* no README — skip */ }
 // Add out/ and dist/
 addDir(join(ROOT, "out"), ROOT);
 addDir(join(ROOT, "dist"), ROOT);
