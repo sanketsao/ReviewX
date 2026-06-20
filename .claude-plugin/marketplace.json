@@ -1,0 +1,20 @@
+{
+  "name": "reviewsx",
+  "owner": {
+    "name": "ReviewSX",
+    "url": "https://github.com/sanketsao/ReviewsX"
+  },
+  "metadata": {
+    "description": "ReviewSX — share prototypes for review with a zero-install feedback + guided-tour overlay.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "reviewsx",
+      "source": "./plugins/reviewsx",
+      "description": "Add the ReviewSX feedback + guided-tour overlay to any web prototype so it can be shared for review.",
+      "version": "0.1.0",
+      "keywords": ["prototype", "feedback", "review", "tour", "annotations", "share"]
+    }
+  ]
+}
