@@ -216,28 +216,64 @@ async function setupInboxCmd(root: string | undefined, provider: FeedbackProvide
   }
 
   if (pick.label.includes("Self-host")) {
-    const steps = [
-      "1. Install flyctl:  https://fly.io/docs/hands-on/install-flyctl/",
-      "2. fly auth login",
-      "3. From the ReviewX repo root:",
-      "   fly launch --config deploy/fly/fly.toml --dockerfile deploy/fly/Dockerfile",
-      "   fly volumes create reviewx_data --size 1 --region iad",
-      "   fly secrets set REVIEWX_ADMIN_TOKEN=$(openssl rand -hex 16)",
-      "   fly deploy --config deploy/fly/fly.toml --dockerfile deploy/fly/Dockerfile",
-      "4. Your inbox URL is  https://<app-name>.fly.dev",
-      "   Come back here and choose 'Enter custom URL'.",
-    ].join("\n");
+    const deployOption = await vscode.window.showQuickPick(
+      [
+        {
+          label: "$(package) Docker Compose",
+          description: "Recommended for AWS / Azure / GCP — bring your own Postgres",
+          detail: "One docker compose up. Works on any Linux host or managed container service.",
+          id: "compose",
+        },
+        {
+          label: "$(terminal) Fly.io",
+          description: "Easiest for a fresh VPS — SQLite on a persistent volume",
+          detail: "Free tier. One fly deploy command from the repo root.",
+          id: "fly",
+        },
+      ],
+      { placeHolder: "Which deployment method fits your infrastructure?" }
+    );
+    if (!deployOption) return;
+
+    let steps: string;
+    let docsUrl: string;
+    if (deployOption.id === "compose") {
+      steps = [
+        "1. Have Docker + Docker Compose installed on your server.",
+        "2. Copy  deploy/docker-compose/  from the ReviewX repo to your server.",
+        "3. cp .env.example .env  — set POSTGRES_PASSWORD and REVIEWX_ADMIN_TOKEN.",
+        "4. docker compose up -d",
+        "5. Inbox is live at  http://<your-server>:4400",
+        "",
+        "Using an existing Postgres (RDS, Azure DB, Cloud SQL)?",
+        "  docker compose -f docker-compose.yml -f docker-compose.external-pg.yml up -d",
+        "  Set DATABASE_URL in .env instead of POSTGRES_PASSWORD.",
+      ].join("\n");
+      docsUrl = "https://docs.docker.com/compose/";
+    } else {
+      steps = [
+        "1. Install flyctl:  https://fly.io/docs/hands-on/install-flyctl/",
+        "2. fly auth login",
+        "3. From the ReviewX repo root:",
+        "   fly launch --config deploy/fly/fly.toml --dockerfile deploy/fly/Dockerfile",
+        "   fly volumes create reviewx_data --size 1 --region iad",
+        "   fly secrets set REVIEWX_ADMIN_TOKEN=$(openssl rand -hex 16)",
+        "   fly deploy --config deploy/fly/fly.toml --dockerfile deploy/fly/Dockerfile",
+        "4. Your inbox URL is  https://<app-name>.fly.dev",
+      ].join("\n");
+      docsUrl = "https://fly.io/docs/hands-on/install-flyctl/";
+    }
 
     const action = await vscode.window.showInformationMessage(
       "Self-hosted ReviewX inbox\n\n" + steps +
       "\n\nData stays entirely on your infrastructure. " +
       "Same Docker image, same API — reviewers and the VS Code extension don't know the difference.",
       { modal: true },
-      "Open Fly.io docs",
+      "Open docs",
       "Enter custom URL"
     );
-    if (action === "Open Fly.io docs") {
-      void vscode.env.openExternal(vscode.Uri.parse("https://fly.io/docs/hands-on/install-flyctl/"));
+    if (action === "Open docs") {
+      void vscode.env.openExternal(vscode.Uri.parse(docsUrl));
       return;
     }
     if (action !== "Enter custom URL") return;

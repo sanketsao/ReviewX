@@ -1,0 +1,53 @@
+# ReviewX inbox — Docker Compose (bundled Postgres)
+#
+# For teams that don't have an existing Postgres instance.
+# Data persists in a named Docker volume (reviewx_pgdata).
+#
+# Quick start:
+#   cp .env.example .env        # edit the two required values
+#   docker compose up -d
+#
+# To use your own existing Postgres, see docker-compose.external-pg.yml
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: reviewx
+      POSTGRES_USER: reviewx
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - reviewx_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reviewx"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  inbox:
+    image: ghcr.io/sanketsao/reviewx-inbox:latest
+    build:
+      context: ../..
+      dockerfile: deploy/fly/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${PORT:-4400}:4400"
+    environment:
+      PORT: 4400
+      HOST: 0.0.0.0
+      REVIEWX_STORAGE: postgres
+      DATABASE_URL: postgres://reviewx:${POSTGRES_PASSWORD}@db:5432/reviewx
+      REVIEWX_ADMIN_TOKEN: ${REVIEWX_ADMIN_TOKEN:?Set REVIEWX_ADMIN_TOKEN in .env}
+      REVIEWX_JWT_SECRET: ${REVIEWX_JWT_SECRET:-}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4400/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  reviewx_pgdata:
