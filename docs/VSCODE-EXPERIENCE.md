@@ -1,4 +1,4 @@
-# Spec: ReviewX builder experience (VS Code extension)
+# Spec: ReviewSX builder experience (VS Code extension)
 
 The CLI is the **engine**; this is the **experience** for non-technical builders
 (user1/user3). Goal: no terminal, no manual installs, no token wrangling — just
@@ -35,7 +35,7 @@ Persistent hosted copy with the widget baked in. **Branches on the configured mo
 
 ## Config
 
-**Project/org config — `.reviewx/config.json`** (committed; safe, no secrets):
+**Project/org config — `.reviewsx/config.json`** (committed; safe, no secrets):
 
 ```json
 {
@@ -43,8 +43,8 @@ Persistent hosted copy with the widget baked in. **Branches on the configured mo
   "source": { "type": "static", "dir": "dist" },
   "publish": {
     "mode": "company",
-    "endpoint": "https://reviewx.internal.acme.com",
-    "target": { "kind": "s3", "bucket": "acme-reviewx", "prefix": "orders-redesign",
+    "endpoint": "https://reviewsx.internal.acme.com",
+    "target": { "kind": "s3", "bucket": "acme-reviewsx", "prefix": "orders-redesign",
                 "baseUrl": "https://review.acme.com" }
   }
 }
@@ -55,17 +55,17 @@ Persistent hosted copy with the widget baked in. **Branches on the configured mo
 - `endpoint`: the **inbox** the widget reports to (managed mode fills this automatically).
 - `target`: where the static files go (`cloudflare-pages` | `s3` | `azure-swa` | `netlify`).
 
-**Secrets — VS Code SecretStorage** (never committed): ReviewX login token, host API
+**Secrets — VS Code SecretStorage** (never committed): ReviewSX login token, host API
 token, cloud creds. Set via "Connect…" flows, not by editing files.
 
 ## How Publish branches
 
-### `managed` → Publish to ReviewX  *(non-technical default for startups)*
-1. Ensure signed in (one-time browser/device-code login to reviewx.app).
-2. `staticExport` with `endpoint` = an inbox ReviewX auto-provisions for the project.
-3. Upload artifact to ReviewX hosting via API.
-4. Return `https://reviewx.app/p/<id>`.
-> Builder cost: **one ReviewX signup + one click.** We host + collect feedback.
+### `managed` → Publish to ReviewSX  *(non-technical default for startups)*
+1. Ensure signed in (one-time browser/device-code login to reviewsx.app).
+2. `staticExport` with `endpoint` = an inbox ReviewSX auto-provisions for the project.
+3. Upload artifact to ReviewSX hosting via API.
+4. Return `https://reviewsx.app/p/<id>`.
+> Builder cost: **one ReviewSX signup + one click.** We host + collect feedback.
 > Needs: the managed SaaS backend (not built yet).
 
 ### `host` → Publish via the account they already have  *(recommended BYO)*
@@ -73,7 +73,7 @@ token, cloud creds. Set via "Connect…" flows, not by editing files.
 and VS Code is already signed in, so there's **no new account, no token, no dashboard**:
 1. Get the GitHub session (`getSession("github", ["repo"])`) — reuses VS Code's login.
 2. `staticExport` with `endpoint` = our **shared hosted inbox**, `basePath = "/<repo>/"`.
-3. Push the artifact to an orphan `reviewx-pages` branch → enable Pages → return
+3. Push the artifact to an orphan `reviewsx-pages` branch → enable Pages → return
    `https://<owner>.github.io/<repo>/`.
 > Builder cost: **one "Allow" click.** Prototype rides on their free GitHub Pages (we serve
 > $0 egress); we host only the tiny inbox. Cloudflare/Netlify via OAuth = fallback for
@@ -116,4 +116,4 @@ inline. Closes the loop without leaving the editor.
 2. **Feedback sidebar** (read/resolve from the inbox).
 3. **Publish → Company** (config-driven deploy to internal target; enterprise-ready).
 4. **Publish → Connect host** (Cloudflare Pages first).
-5. **Publish → ReviewX (managed)** — gated on the SaaS hosting decision.
+5. **Publish → ReviewSX (managed)** — gated on the SaaS hosting decision.

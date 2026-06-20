@@ -13,7 +13,7 @@ export interface GitHubPagesOptions {
   repo: string;
   /** A token with `repo` scope (VS Code GitHub session, gh, or a PAT). */
   token: string;
-  /** Branch to publish to (force-updated each time). Default: reviewx-pages. */
+  /** Branch to publish to (force-updated each time). Default: reviewsx-pages. */
   branch?: string;
 }
 
@@ -46,7 +46,7 @@ async function gh(
  * holds the latest artifact (never touches the prototype's own history).
  */
 export async function deployGitHubPages(opts: GitHubPagesOptions): Promise<GitHubPagesResult> {
-  const branch = opts.branch || "reviewx-pages";
+  const branch = opts.branch || "reviewsx-pages";
   const { owner, repo, token, artifactDir } = opts;
   const remote = `https://x-access-token:${token}@github.com/${owner}/${repo}.git`;
   const git = (args: string[]) => run("git", args, { cwd: artifactDir });
@@ -56,9 +56,9 @@ export async function deployGitHubPages(opts: GitHubPagesOptions): Promise<GitHu
   await git(["init", "-q", "-b", branch]);
   await git(["add", "-A"]);
   await git([
-    "-c", "user.email=bot@reviewx.dev",
-    "-c", "user.name=ReviewX",
-    "commit", "-q", "-m", "ReviewX publish",
+    "-c", "user.email=bot@reviewsx.dev",
+    "-c", "user.name=ReviewSX",
+    "commit", "-q", "-m", "ReviewSX publish",
   ]);
   await git(["push", "-q", "--force", remote, `HEAD:refs/heads/${branch}`]);
   await fs.rm(path.join(artifactDir, ".git"), { recursive: true, force: true });

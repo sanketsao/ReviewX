@@ -1,4 +1,4 @@
-# reviewx
+# reviewsx
 
 Zero-install **feedback + guided-tour overlay** for web prototypes. Drop in one
 `<script>` tag and anyone who opens your prototype sees a banner to **take a
@@ -11,7 +11,7 @@ your app's styles or markup.
 Add one line before `</body>`:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/reviewx@1" data-reviewx></script>
+<script src="https://cdn.jsdelivr.net/npm/reviewsx@1" data-reviewsx></script>
 ```
 
 That's it. Feedback persists in the reviewer's own browser (`localStorage`) by
@@ -25,8 +25,8 @@ hosted inbox with `data-endpoint`:
 ```html
 <!-- The copy you SHARE with reviewers -->
 <script
-  src="https://cdn.jsdelivr.net/npm/reviewx@1"
-  data-reviewx
+  src="https://cdn.jsdelivr.net/npm/reviewsx@1"
+  data-reviewsx
   data-endpoint="https://your-inbox.example.com"
   data-project="my-proto"
 ></script>
@@ -35,8 +35,8 @@ hosted inbox with `data-endpoint`:
 ```html
 <!-- YOUR copy (author tools + the write secret) — don't share this one -->
 <script
-  src="https://cdn.jsdelivr.net/npm/reviewx@1"
-  data-reviewx
+  src="https://cdn.jsdelivr.net/npm/reviewsx@1"
+  data-reviewsx
   data-role="author"
   data-endpoint="https://your-inbox.example.com"
   data-project="my-proto"
@@ -44,7 +44,7 @@ hosted inbox with `data-endpoint`:
 ></script>
 ```
 
-Run the inbox with the ReviewX CLI:
+Run the inbox with the ReviewSX CLI:
 
 ```bash
 npx @protofeedback/server --inbox
@@ -54,20 +54,20 @@ npx @protofeedback/server --inbox
 
 | Attribute | Effect | Default |
 | --- | --- | --- |
-| `data-reviewx` | Marks the script tag for config discovery. | — |
+| `data-reviewsx` | Marks the script tag for config discovery. | — |
 | `data-role="author"` | Show author tools (tour builder, comments inbox, export). | `reviewer` |
 | `data-endpoint="https://…"` | Send feedback to a shared hosted inbox. | per-browser `localStorage` |
 | `data-project="my-proto"` | Logical id that keys the stored data. | page host |
 | `data-token="secret"` | **Author copy only.** Authorizes resolving/editing feedback, tour edits, and export. | none |
 
-You can also configure via a `window.ReviewX` object set **before** the
+You can also configure via a `window.ReviewSX` object set **before** the
 script tag:
 
 ```html
 <script>
-  window.ReviewX = { endpoint: "https://your-inbox.example.com", project: "my-proto" };
+  window.ReviewSX = { endpoint: "https://your-inbox.example.com", project: "my-proto" };
 </script>
-<script src="https://cdn.jsdelivr.net/npm/reviewx@1" data-reviewx></script>
+<script src="https://cdn.jsdelivr.net/npm/reviewsx@1" data-reviewsx></script>
 ```
 
 ### Author vs reviewer

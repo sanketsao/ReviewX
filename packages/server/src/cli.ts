@@ -71,7 +71,7 @@ Publish options:
   -o, --out <dir>      Where to write the hostable artifact
       --endpoint <url> Inbox the embedded widget posts feedback to
       --project <id>   Project id reported to the inbox (default: dir/repo name)
-      --bundle-widget  Embed reviewx.js in the artifact (no CDN dependency)
+      --bundle-widget  Embed reviewsx.js in the artifact (no CDN dependency)
       --target <name>  dir (default) | github-pages
       --repo <o>/<r>   Repo for github-pages (uses GITHUB_TOKEN / gh / --github-token)
       --github-token <t>  Token with repo scope (else env GITHUB_TOKEN or gh)
@@ -99,7 +99,7 @@ async function main() {
   }
 
   if (args.command === "publish") {
-    if (!args.dir) throw new Error("publish needs a source directory: reviewx publish <dir> -o <out>");
+    if (!args.dir) throw new Error("publish needs a source directory: reviewsx publish <dir> -o <out>");
     const target = args.target || "dir";
 
     // GitHub Pages serves project sites under /<repo>/, so the bundled widget
@@ -115,7 +115,7 @@ async function main() {
       basePath = `/${repo}/`;
     }
 
-    const outDir = args.out ? path.resolve(args.out) : path.resolve(".reviewx-publish");
+    const outDir = args.out ? path.resolve(args.out) : path.resolve(".reviewsx-publish");
     const project = args.project || (repo ? `${owner}-${repo}` : path.basename(path.resolve(args.dir)));
     const result = await staticExport({
       srcDir: path.resolve(args.dir),
@@ -180,11 +180,11 @@ async function main() {
       jwtSecret: process.env.REVIEWX_JWT_SECRET,
     });
     process.stdout.write(
-      `\n  ReviewX inbox ready  [storage: ${storage ?? "file"}]\n  Endpoint: ${inbox.url}\n` +
+      `\n  ReviewSX inbox ready  [storage: ${storage ?? "file"}]\n  Endpoint: ${inbox.url}\n` +
         `  Reviewer copy (anyone can leave feedback):\n` +
-        `    <script src="…/reviewx@1" data-reviewx data-endpoint="${inbox.url}" data-project="my-proto"></script>\n` +
+        `    <script src="…/reviewsx@1" data-reviewsx data-endpoint="${inbox.url}" data-project="my-proto"></script>\n` +
         `  Author copy (resolve/edit/export — keep the token private):\n` +
-        `    <script src="…/reviewx@1" data-reviewx data-role="author" data-endpoint="${inbox.url}" data-project="my-proto" data-token="choose-a-secret"></script>\n` +
+        `    <script src="…/reviewsx@1" data-reviewsx data-role="author" data-endpoint="${inbox.url}" data-project="my-proto" data-token="choose-a-secret"></script>\n` +
         `\n  The first request bearing data-token claims it for that project; writes are rate-limited per IP.\n` +
         `\n  Press Ctrl+C to stop.\n\n`
     );

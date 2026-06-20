@@ -1,6 +1,6 @@
 {
   "name": "protofeedback-vscode",
-  "displayName": "ReviewX",
+  "displayName": "ReviewSX",
   "version": "0.1.0",
   "description": "Add a live feedback overlay to any prototype — tour, comments, and publish to GitHub Pages",
   "publisher": "protofeedback",
@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/sanketsao/ReviewX.git"
+    "url": "https://github.com/sanketsao/ReviewSX.git"
   },
   "license": "MIT",
   "categories": [
@@ -21,30 +21,30 @@
     "commands": [
       {
         "command": "protofeedback.start",
-        "title": "ReviewX: Start prototype with overlay",
+        "title": "ReviewSX: Start prototype with overlay",
         "icon": "$(play)"
       },
       {
         "command": "protofeedback.share",
-        "title": "ReviewX: Share via Tailscale Funnel",
+        "title": "ReviewSX: Share via Tailscale Funnel",
         "icon": "$(broadcast)"
       },
       {
         "command": "protofeedback.publish",
-        "title": "ReviewX: Publish to GitHub Pages",
+        "title": "ReviewSX: Publish to GitHub Pages",
         "icon": "$(cloud-upload)"
       },
       {
         "command": "protofeedback.stop",
-        "title": "ReviewX: Stop"
+        "title": "ReviewSX: Stop"
       },
       {
         "command": "protofeedback.editTour",
-        "title": "ReviewX: Edit tour"
+        "title": "ReviewSX: Edit tour"
       },
       {
         "command": "protofeedback.refresh",
-        "title": "ReviewX: Refresh feedback",
+        "title": "ReviewSX: Refresh feedback",
         "icon": "$(refresh)"
       },
       {
@@ -54,7 +54,7 @@
       },
       {
         "command": "protofeedback.setupInbox",
-        "title": "ReviewX: Set up shared inbox",
+        "title": "ReviewSX: Set up shared inbox",
         "icon": "$(server)"
       }
     ],
@@ -62,7 +62,7 @@
       "activitybar": [
         {
           "id": "protofeedback",
-          "title": "ReviewX",
+          "title": "ReviewSX",
           "icon": "$(comment-discussion)"
         }
       ]
@@ -78,7 +78,7 @@
     "viewsWelcome": [
       {
         "view": "protofeedback.feedback",
-        "contents": "Welcome to ReviewX.\n\nPreview your prototype with a live overlay — author a guided tour, pin feedback, then publish for your team to review.\n\n[$(play) Start with overlay](command:protofeedback.start)\n\nReady to share?\n[$(cloud-upload) Publish to GitHub Pages](command:protofeedback.publish)\n\n*Requires a public GitHub repo (free) or GitHub Pro/Team for private repos.*",
+        "contents": "Welcome to ReviewSX.\n\nPreview your prototype with a live overlay — author a guided tour, pin feedback, then publish for your team to review.\n\n[$(play) Start with overlay](command:protofeedback.start)\n\nReady to share?\n[$(cloud-upload) Publish to GitHub Pages](command:protofeedback.publish)\n\n*Requires a public GitHub repo (free) or GitHub Pro/Team for private repos.*",
         "when": "!protofeedback.serverRunning"
       },
       {
@@ -133,7 +133,7 @@
     "build": "tsc -p tsconfig.json",
     "watch": "tsc -p tsconfig.json --watch",
     "bundle": "esbuild src/extension.ts --bundle --external:vscode --external:node:sqlite --platform=node --outfile=out/extension.js --sourcemap",
-    "package": "npm run bundle && node -e \"const fs=require('fs');fs.mkdirSync('dist',{recursive:true});fs.copyFileSync('../../packages/overlay/dist/reviewx.js','dist/reviewx.js');fs.copyFileSync('../../packages/overlay/dist/overlay.js','dist/overlay.js')\" && node build-vsix.mjs"
+    "package": "npm run bundle && node -e \"const fs=require('fs');fs.mkdirSync('dist',{recursive:true});fs.copyFileSync('../../packages/overlay/dist/reviewsx.js','dist/reviewsx.js');fs.copyFileSync('../../packages/overlay/dist/overlay.js','dist/overlay.js')\" && node build-vsix.mjs"
   },
   "dependencies": {
     "@protofeedback/server": "0.1.0"

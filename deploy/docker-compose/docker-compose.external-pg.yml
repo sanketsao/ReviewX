@@ -1,4 +1,4 @@
-# ReviewX inbox — external Postgres override
+# ReviewSX inbox — external Postgres override
 #
 # Use when your organisation already has a managed Postgres instance
 # (AWS RDS, Azure Database, Google Cloud SQL, Supabase, etc.)
@@ -7,7 +7,7 @@
 #   docker compose -f docker-compose.yml -f docker-compose.external-pg.yml up -d
 #
 # Set DATABASE_URL in your .env file:
-#   DATABASE_URL=postgres://user:pass@your-rds-host.amazonaws.com:5432/reviewx
+#   DATABASE_URL=postgres://user:pass@your-rds-host.amazonaws.com:5432/reviewsx
 
 services:
   # Remove the bundled db service entirely.

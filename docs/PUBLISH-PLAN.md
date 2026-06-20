@@ -1,11 +1,11 @@
-# Feature Plan: `reviewx publish` — share a prototype for async review
+# Feature Plan: `reviewsx publish` — share a prototype for async review
 
 ## Problem
 
 A prototype built in VS Code only runs on `localhost`. The tunnel (`--share`) covers
 *live* sessions but not async review (laptop must stay on, URL is ephemeral). The first
 real step to gathering feedback is getting a **persistent, shareable copy** of the
-prototype in front of reviewers — with the ReviewX widget already baked in.
+prototype in front of reviewers — with the ReviewSX widget already baked in.
 
 ## Hard constraint
 
@@ -49,24 +49,24 @@ No new account, no token, no dashboard, no DNS.
 2. **Repo**: read `origin` from the workspace git remote → `{owner, repo}`.
 3. **Build**: `staticExport` with `project = <owner>-<repo>` slug, `endpoint = <shared inbox>`,
    `bundleWidget = true`, **`basePath = "/<repo>/"`** (see caveat).
-4. **Deploy from a branch**: push the artifact to an **orphan `reviewx-pages` branch**
+4. **Deploy from a branch**: push the artifact to an **orphan `reviewsx-pages` branch**
    (only the built files, force-updated each publish — never pollutes prototype history),
    via the Git Data API or a token-authed `git push`.
 5. **Enable Pages**: `POST/PUT /repos/{owner}/{repo}/pages` with
-   `source: { branch: "reviewx-pages", path: "/" }`; poll `GET …/pages` until built.
+   `source: { branch: "reviewsx-pages", path: "/" }`; poll `GET …/pages` until built.
 6. Return `html_url` (e.g. `https://owner.github.io/repo/`) + Copy.
 
 ### Caveats (call out in UI)
 - **Base path bug:** project Pages serve under `/<repo>/`, so the bundled widget's
-  root-absolute `/reviewx.js` would 404. **`staticExport` needs a `basePath` option** that
-  prefixes injected asset URLs (`/<repo>/reviewx.js`). Required before GH Pages works.
+  root-absolute `/reviewsx.js` would 404. **`staticExport` needs a `basePath` option** that
+  prefixes injected asset URLs (`/<repo>/reviewsx.js`). Required before GH Pages works.
 - **Private repos:** free GitHub serves Pages **public** only (private Pages = Pro/Team/
   Enterprise). Fine for Customer 1 (loose IP); private is the enterprise self-host path.
 - Org settings may disable Pages — handle the API error with a clear message.
 - First build latency ~30–60s.
 
 ### Shared inbox
-We run one multi-tenant inbox (the Dockerized one) at e.g. `inbox.reviewx.app`. The
+We run one multi-tenant inbox (the Dockerized one) at e.g. `inbox.reviewsx.app`. The
 published widget points `data-endpoint` there with `data-project = <owner>-<repo>`. user1's
 first author action claims the project's TOFU token; reviewers post openly (rate-limited).
 This single small instance covers all BYO users — the only thing we pay for.
@@ -74,8 +74,8 @@ This single small instance covers all BYO users — the only thing we pay for.
 ## Command
 
 ```
-reviewx publish [dir]            # static-export a built directory
-reviewx publish --snapshot       # freeze a running prototype (static or --proxy)
+reviewsx publish [dir]            # static-export a built directory
+reviewsx publish --snapshot       # freeze a running prototype (static or --proxy)
   --endpoint <url>               # inbox the widget posts feedback to (shared review)
   --project  <id>                # project id for the inbox
   --target   <name>              # upload target (spike: cloudflare-pages | dir)
@@ -122,7 +122,7 @@ to keep the core install light.
 - **`cloudflare-pages` / `netlify`**: alternate BYO via OAuth/token (fallback for users
   without GitHub). Free tier, custom domains, HTTPS, fast CDN.
 - **`s3` / `azure-swa`**: enterprise internal targets (Customer 2).
-- **managed `reviewx`**: deferred (we host).
+- **managed `reviewsx`**: deferred (we host).
 
 ## Security / privacy
 
@@ -140,7 +140,7 @@ to keep the core install light.
 4. **Deploy the shared inbox** (the Dockerized multi-tenant one) at a stable URL.
 5. **Snapshot engine** (Engine B) — Playwright freeze for backend/dynamic prototypes.
 6. **VS Code Share/Publish buttons** (see VSCODE-EXPERIENCE.md) wrapping all of the above.
-7. **Deferred:** managed `reviewx` hosting; privacy upgrades (password / SSO).
+7. **Deferred:** managed `reviewsx` hosting; privacy upgrades (password / SSO).
 
 ## What I need from you
 

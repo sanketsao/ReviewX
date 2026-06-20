@@ -5,7 +5,7 @@ account). The only thing **you** run is one small **inbox** that collects feedba
 of them. It's tiny (a few hundred MB RAM, a SQLite file on a volume) and scales to zero
 when idle — realistically **~$0–5/month** for many projects.
 
-You only do this **once**. After it, every `reviewx publish … --target github-pages
+You only do this **once**. After it, every `reviewsx publish … --target github-pages
 --endpoint https://<your-inbox>` points reviewers' feedback at it.
 
 ## What you need
@@ -34,7 +34,7 @@ curl https://<app-name>.fly.dev/health      # {"ok":true,"storage":"sqlite (...)
 
 ## Using it
 ```bash
-reviewx publish ./my-prototype --target github-pages \
+reviewsx publish ./my-prototype --target github-pages \
   --repo myorg/my-prototype \
   --endpoint https://<app-name>.fly.dev
 ```

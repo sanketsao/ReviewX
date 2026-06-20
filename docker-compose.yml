@@ -1,19 +1,19 @@
-# Enterprise BYO-DB demo: the ReviewX inbox persisting to your own Postgres.
+# Enterprise BYO-DB demo: the ReviewSX inbox persisting to your own Postgres.
 #   docker compose up --build
 # Then point a snippet at it:
-#   <script src="https://cdn.jsdelivr.net/npm/reviewx@1" data-reviewx
+#   <script src="https://cdn.jsdelivr.net/npm/reviewsx@1" data-reviewsx
 #           data-endpoint="http://localhost:4400" data-project="my-proto"></script>
 services:
   db:
     image: postgres:16
     environment:
-      POSTGRES_USER: reviewx
-      POSTGRES_PASSWORD: reviewx
-      POSTGRES_DB: reviewx
+      POSTGRES_USER: reviewsx
+      POSTGRES_PASSWORD: reviewsx
+      POSTGRES_DB: reviewsx
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U reviewx"]
+      test: ["CMD-SHELL", "pg_isready -U reviewsx"]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -23,7 +23,7 @@ services:
     environment:
       PORT: 4400
       REVIEWX_STORAGE: postgres
-      DATABASE_URL: postgres://reviewx:reviewx@db:5432/reviewx
+      DATABASE_URL: postgres://reviewsx:reviewsx@db:5432/reviewsx
       REVIEWX_WRITE_RATE_LIMIT: 60
     ports:
       - "4400:4400"

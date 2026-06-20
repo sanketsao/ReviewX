@@ -26,7 +26,7 @@ const ROOT = new URL(".", import.meta.url).pathname;
 const pkg = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"));
 
 // Files to include (relative to extension root)
-const INCLUDE = ["out/extension.js", "dist/reviewx.js", "package.json"];
+const INCLUDE = ["out/extension.js", "dist/reviewsx.js", "package.json"];
 
 const MANIFEST = `<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011"

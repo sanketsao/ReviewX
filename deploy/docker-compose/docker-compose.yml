@@ -1,7 +1,7 @@
-# ReviewX inbox — Docker Compose (bundled Postgres)
+# ReviewSX inbox — Docker Compose (bundled Postgres)
 #
 # For teams that don't have an existing Postgres instance.
-# Data persists in a named Docker volume (reviewx_pgdata).
+# Data persists in a named Docker volume (reviewsx_pgdata).
 #
 # Quick start:
 #   cp .env.example .env        # edit the two required values
@@ -14,13 +14,13 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: reviewx
-      POSTGRES_USER: reviewx
+      POSTGRES_DB: reviewsx
+      POSTGRES_USER: reviewsx
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
     volumes:
-      - reviewx_pgdata:/var/lib/postgresql/data
+      - reviewsx_pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U reviewx"]
+      test: ["CMD-SHELL", "pg_isready -U reviewsx"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -40,7 +40,7 @@ services:
       PORT: 4400
       HOST: 0.0.0.0
       REVIEWX_STORAGE: postgres
-      DATABASE_URL: postgres://reviewx:${POSTGRES_PASSWORD}@db:5432/reviewx
+      DATABASE_URL: postgres://reviewsx:${POSTGRES_PASSWORD}@db:5432/reviewsx
       REVIEWX_ADMIN_TOKEN: ${REVIEWX_ADMIN_TOKEN:?Set REVIEWX_ADMIN_TOKEN in .env}
       REVIEWX_JWT_SECRET: ${REVIEWX_JWT_SECRET:-}
     healthcheck:
@@ -50,4 +50,4 @@ services:
       retries: 3
 
 volumes:
-  reviewx_pgdata:
+  reviewsx_pgdata:

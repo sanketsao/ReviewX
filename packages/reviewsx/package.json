@@ -1,5 +1,5 @@
 {
-  "name": "reviewx",
+  "name": "reviewsx",
   "version": "1.0.0",
   "description": "Zero-install feedback + guided-tour overlay for web prototypes. Drop in one <script> tag and reviewers leave pinned UI feedback or walk a guided tour — no account, no extension.",
   "license": "MIT",
@@ -13,21 +13,21 @@
     "ux",
     "shadow-dom"
   ],
-  "homepage": "https://github.com/sanketsao/ReviewX#readme",
+  "homepage": "https://github.com/sanketsao/ReviewSX#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sanketsao/ReviewX.git"
+    "url": "git+https://github.com/sanketsao/ReviewSX.git"
   },
   "bugs": {
-    "url": "https://github.com/sanketsao/ReviewX/issues"
+    "url": "https://github.com/sanketsao/ReviewSX/issues"
   },
   "type": "commonjs",
-  "main": "dist/reviewx.js",
-  "browser": "dist/reviewx.js",
-  "unpkg": "dist/reviewx.js",
-  "jsdelivr": "dist/reviewx.js",
+  "main": "dist/reviewsx.js",
+  "browser": "dist/reviewsx.js",
+  "unpkg": "dist/reviewsx.js",
+  "jsdelivr": "dist/reviewsx.js",
   "files": [
-    "dist/reviewx.js",
+    "dist/reviewsx.js",
     "README.md",
     "LICENSE"
   ],

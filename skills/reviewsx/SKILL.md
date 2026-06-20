@@ -1,17 +1,17 @@
 ---
-name: reviewx
+name: reviewsx
 description: >-
-  Add the ReviewX feedback + guided-tour overlay to a web prototype so it can
+  Add the ReviewSX feedback + guided-tour overlay to a web prototype so it can
   be shared for review. Use when the user is building or finishing a web prototype,
   demo, or shareable app (static HTML, React/Vite, Next.js, etc.) and wants
   reviewers to leave in-context UI feedback or walk a guided tour — or asks to
-  "add ReviewX", "make this reviewable", or "add a feedback overlay". Injects
+  "add ReviewSX", "make this reviewable", or "add a feedback overlay". Injects
   one CDN snippet (HTML) or a small component/import (framework apps).
 ---
 
-# ReviewX auto-inject
+# ReviewSX auto-inject
 
-ReviewX is a zero-install overlay: the author adds one line, and anyone who
+ReviewSX is a zero-install overlay: the author adds one line, and anyone who
 opens the prototype link sees a banner to **take a guided tour** or **give pinned
 feedback** — no account, no extension. This skill inserts that line correctly for
 the project's framework and explains the result.
@@ -25,7 +25,7 @@ code. If unsure whether the user wants it, ask once before editing.
 ## Core snippet (the canonical line)
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/reviewx@1" data-reviewx></script>
+<script src="https://cdn.jsdelivr.net/npm/reviewsx@1" data-reviewsx></script>
 ```
 
 Optional attributes (only add when the user asks for them):
@@ -53,7 +53,7 @@ guess string. Never put `data-token` on the copy you share with reviewers.
 
 ```html
   </main>
-  <script src="https://cdn.jsdelivr.net/npm/reviewx@1" data-reviewx></script>
+  <script src="https://cdn.jsdelivr.net/npm/reviewsx@1" data-reviewsx></script>
 </body>
 ```
 
@@ -71,7 +71,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         {children}
-        <Script src="https://cdn.jsdelivr.net/npm/reviewx@1" data-reviewx />
+        <Script src="https://cdn.jsdelivr.net/npm/reviewsx@1" data-reviewsx />
       </body>
     </html>
   );
@@ -83,7 +83,7 @@ inside `<body>`, or to `_app.tsx`.
 
 ## Rules
 
-1. **Inject exactly once.** Before editing, grep for `reviewx` and skip if it
+1. **Inject exactly once.** Before editing, grep for `reviewsx` and skip if it
    already exists.
 2. **Place it at the end of `<body>`**, after app mount points, so the DOM exists
    when it loads.
@@ -92,11 +92,11 @@ inside `<body>`, or to `_app.tsx`.
    for the builder's own view only.
 4. **Prefer the CDN snippet** for prototypes the user controls the source of. If
    the prototype is a hosted preview whose HTML can't be edited (e.g. a platform
-   preview), tell the user to use the ReviewX local proxy/CLI instead, which
+   preview), tell the user to use the ReviewSX local proxy/CLI instead, which
    injects the overlay without source changes.
 5. After injecting, tell the user in one line: feedback persists in the reviewer's
    browser by default; to collect shared feedback across reviewers, set
-   `data-endpoint` to a hosted inbox or run the ReviewX proxy.
+   `data-endpoint` to a hosted inbox or run the ReviewSX proxy.
 
 ## What the user gets
 

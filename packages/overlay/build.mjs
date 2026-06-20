@@ -13,10 +13,10 @@ const common = {
 
 // Two front doors share one overlay core:
 //  - overlay.js   : injected by the local proxy/static server (httpBackend)
-//  - reviewx.js: the zero-install CDN snippet (local/rest backend)
+//  - reviewsx.js: the zero-install CDN snippet (local/rest backend)
 const targets = [
   { entryPoints: ["src/index.ts"], outfile: "dist/overlay.js" },
-  { entryPoints: ["src/snippet.ts"], outfile: "dist/reviewx.js" },
+  { entryPoints: ["src/snippet.ts"], outfile: "dist/reviewsx.js" },
 ];
 
 if (watch) {
@@ -24,7 +24,7 @@ if (watch) {
     const ctx = await context({ ...common, ...t });
     await ctx.watch();
   }
-  console.log("[overlay] watching overlay.js + reviewx.js…");
+  console.log("[overlay] watching overlay.js + reviewsx.js…");
 } else {
   for (const t of targets) {
     await build({ ...common, ...t });

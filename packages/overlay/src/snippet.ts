@@ -1,9 +1,9 @@
 // CDN snippet entry: the zero-install front door. Authors drop one line into a
 // prototype and reviewers see the overlay with no install.
 //
-//   <script src="https://cdn.jsdelivr.net/npm/reviewx@1" data-reviewx></script>
+//   <script src="https://cdn.jsdelivr.net/npm/reviewsx@1" data-reviewsx></script>
 //
-// Optional config via data-* attributes or a window.ReviewX object set before
+// Optional config via data-* attributes or a window.ReviewSX object set before
 // the script:
 //   data-role="author"               author tools (default reviewer)
 //   data-endpoint="https://…/api"    shared inbox (default: per-browser localStorage)

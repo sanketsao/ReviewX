@@ -1,4 +1,4 @@
-# ReviewX
+# ReviewSX
 
 **Zero-install feedback + guided-tour overlay for web prototypes.** Share a running
 prototype; reviewers leave **pinned, threaded UI feedback** and walk a **guided tour** —
@@ -49,16 +49,16 @@ add `data-endpoint` to collect shared feedback in an inbox.
 
 ```html
 <!-- reviewer copy -->
-<script src="https://cdn.jsdelivr.net/npm/reviewx@1" data-reviewx
+<script src="https://cdn.jsdelivr.net/npm/reviewsx@1" data-reviewsx
         data-endpoint="https://inbox.example.com" data-project="my-proto"></script>
 
 <!-- author copy: add a private token for resolve/edit/export -->
-<script src="https://cdn.jsdelivr.net/npm/reviewx@1" data-reviewx data-role="author"
+<script src="https://cdn.jsdelivr.net/npm/reviewsx@1" data-reviewsx data-role="author"
         data-endpoint="https://inbox.example.com" data-project="my-proto"
         data-token="keep-this-private"></script>
 ```
 
-Config can also be set via a `window.ReviewX = { endpoint, project, role, token }` object.
+Config can also be set via a `window.ReviewSX = { endpoint, project, role, token }` object.
 
 ### 3. Self-hosted inbox (file / SQLite / Postgres)
 
@@ -74,7 +74,7 @@ node packages/server/dist/cli.js --inbox --storage sqlite --data-dir ./data
 
 # your Postgres (bring-your-own-database)
 node packages/server/dist/cli.js --inbox --storage postgres \
-  --database-url postgres://user:pass@host:5432/reviewx
+  --database-url postgres://user:pass@host:5432/reviewsx
 ```
 
 **Docker / Compose** (enterprise BYO-DB demo — inbox + Postgres in one command):
@@ -117,11 +117,11 @@ Inbox configuration is env-driven (container-friendly):
 
 ```
 packages/
-  overlay/          # Shadow-DOM overlay; builds overlay.js (server) + reviewx.js (CDN)
+  overlay/          # Shadow-DOM overlay; builds overlay.js (server) + reviewsx.js (CDN)
   server/           # injecting static/proxy server, /__pf API, --inbox, storage adapters
-  reviewx/          # public npm/CDN snippet package (dist/reviewx.js)
+  reviewsx/          # public npm/CDN snippet package (dist/reviewsx.js)
   vscode-extension/ # authoring commands + feedback view
-skills/reviewx/     # Claude Code auto-inject skill
+skills/reviewsx/     # Claude Code auto-inject skill
 examples/           # static-proto, finance-app (multi-tab SPA), snippet-demo
 ```
 

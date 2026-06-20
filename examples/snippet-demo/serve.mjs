@@ -1,5 +1,5 @@
 // Minimal static file server rooted at the repo, used only to smoke-test the
-// CDN snippet bundle (examples/snippet-demo/index.html → dist/reviewx.js).
+// CDN snippet bundle (examples/snippet-demo/index.html → dist/reviewsx.js).
 // Plain static serving with NO overlay injection, so the snippet is the only
 // thing that mounts the overlay.
 import { createServer } from "http";

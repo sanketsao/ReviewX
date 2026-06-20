@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Acme Onboarding — Prototype</title>
+    <style>
+      * { margin: 0; box-sizing: border-box; }
+      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #1f2937; }
+      header { background: #6366f1; color: #fff; padding: 20px 32px; display: flex; justify-content: space-between; align-items: center; }
+      header h1 { font-size: 20px; }
+      nav a { color: #e0e7ff; margin-left: 20px; text-decoration: none; font-size: 14px; }
+      .hero { padding: 64px 32px; text-align: center; background: #f9fafb; }
+      .hero h2 { font-size: 36px; margin-bottom: 12px; }
+      .hero p { color: #6b7280; font-size: 16px; margin-bottom: 24px; }
+      .cta { background: #6366f1; color: #fff; border: 0; padding: 12px 28px; border-radius: 8px; font-size: 16px; cursor: pointer; }
+      .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 48px 32px; max-width: 1000px; margin: 0 auto; }
+      .card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; }
+      .card h3 { margin-bottom: 8px; font-size: 18px; }
+      .card p { color: #6b7280; font-size: 14px; }
+      footer { padding: 32px; text-align: center; color: #9ca3af; font-size: 13px; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1 id="brand">Acme HR</h1>
+      <nav>
+        <a href="#">Dashboard</a>
+        <a href="#">Team</a>
+        <a href="#">Settings</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <h2 id="headline">Onboard new hires in minutes</h2>
+      <p>A friendlier way to bring people into your company.</p>
+      <button class="cta" id="get-started">Get started</button>
+    </section>
+
+    <section class="cards">
+      <div class="card">
+        <h3>Checklists</h3>
+        <p>Automated tasks so nothing slips through the cracks.</p>
+      </div>
+      <div class="card">
+        <h3>Documents</h3>
+        <p>Collect signatures and paperwork in one place.</p>
+      </div>
+      <div class="card">
+        <h3>Schedule</h3>
+        <p>First-week agendas that set everyone up for success.</p>
+      </div>
+    </section>
+
+    <footer>Internal prototype — not for distribution.</footer>
+  <script src="/reviewx-pages-test/reviewx.js" data-reviewx data-endpoint="http://localhost:4400" data-project="sanketsao-reviewx-pages-test"></script>
+</body>
+</html>

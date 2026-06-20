@@ -83,7 +83,7 @@ export function localBackend(
   project: string,
   seed?: ReviewXConfig["seed"]
 ): Backend {
-  const ns = `reviewx:${project}`;
+  const ns = `reviewsx:${project}`;
   const read = <T>(key: string, fallback: T): T => {
     try {
       const raw = localStorage.getItem(`${ns}:${key}`);
@@ -263,15 +263,15 @@ export interface ReviewXConfig {
   seed?: { tour?: TourStep[]; feedback?: Feedback[]; settings?: Settings };
 }
 
-/** Merge window.ReviewX with <script data-*> attributes on the snippet tag. */
+/** Merge window.ReviewSX with <script data-*> attributes on the snippet tag. */
 export function resolveConfig(): ReviewXConfig {
-  const win = (window as unknown as { ReviewX?: ReviewXConfig }).ReviewX || {};
+  const win = (window as unknown as { ReviewSX?: ReviewXConfig }).ReviewSX || {};
   const fromScript: ReviewXConfig = {};
   try {
     const el =
       document.currentScript ||
-      document.querySelector("script[data-reviewx]") ||
-      document.querySelector('script[src*="reviewx"]');
+      document.querySelector("script[data-reviewsx]") ||
+      document.querySelector('script[src*="reviewsx"]');
     const ds = (el as HTMLElement | null)?.dataset;
     if (ds) {
       if (ds.backend) fromScript.backend = ds.backend as ReviewXConfig["backend"];

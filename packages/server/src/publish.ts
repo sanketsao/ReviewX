@@ -1,7 +1,7 @@
 import { promises as fs, existsSync } from "fs";
 import * as path from "path";
 
-const DEFAULT_CDN = "https://cdn.jsdelivr.net/npm/reviewx@1";
+const DEFAULT_CDN = "https://cdn.jsdelivr.net/npm/reviewsx@1";
 
 export interface PublishOptions {
   /** Static directory (or framework build output) to publish. */
@@ -13,11 +13,11 @@ export interface PublishOptions {
   /** Inbox endpoint the widget posts feedback to. Omit → per-browser localStorage. */
   endpoint?: string;
   /**
-   * Copy reviewx.js into the artifact and reference it at /reviewx.js, so the
+   * Copy reviewsx.js into the artifact and reference it at /reviewsx.js, so the
    * published prototype is self-contained (no dependency on the public CDN).
    */
   bundleWidget?: boolean;
-  /** Override the widget <script src>. Defaults to jsDelivr (or /reviewx.js if bundled). */
+  /** Override the widget <script src>. Defaults to jsDelivr (or /reviewsx.js if bundled). */
   cdn?: string;
   /**
    * URL path the artifact is served under (e.g. "/my-repo/" for GitHub project
@@ -40,24 +40,24 @@ export interface PublishResult {
   widgetSrc: string;
 }
 
-/** Locate the built reviewx.js snippet bundle.
- *  Inside the packaged VS Code extension, the bundle is copied to dist/reviewx.js
+/** Locate the built reviewsx.js snippet bundle.
+ *  Inside the packaged VS Code extension, the bundle is copied to dist/reviewsx.js
  *  next to out/extension.js. In the monorepo / CLI, resolve via the workspace package. */
-function reviewxBundlePath(): string {
-  const adjacent = path.join(__dirname, "..", "dist", "reviewx.js");
+function reviewsxBundlePath(): string {
+  const adjacent = path.join(__dirname, "..", "dist", "reviewsx.js");
   if (existsSync(adjacent)) return adjacent;
   const pkg = require.resolve("@protofeedback/overlay/package.json");
-  return path.join(path.dirname(pkg), "dist", "reviewx.js");
+  return path.join(path.dirname(pkg), "dist", "reviewsx.js");
 }
 
 /** Build the reviewer-copy snippet tag (no author token — published copy is public). */
 export function snippetTag(
   opts: Pick<PublishOptions, "project" | "endpoint" | "bundleWidget" | "cdn" | "basePath">
 ): string {
-  const src = opts.bundleWidget ? `${normBase(opts.basePath)}reviewx.js` : opts.cdn || DEFAULT_CDN;
+  const src = opts.bundleWidget ? `${normBase(opts.basePath)}reviewsx.js` : opts.cdn || DEFAULT_CDN;
   const attrs = [
     `src="${src}"`,
-    "data-reviewx",
+    "data-reviewsx",
     opts.endpoint ? `data-endpoint="${opts.endpoint}"` : "",
     `data-project="${opts.project}"`,
   ].filter(Boolean);
@@ -70,9 +70,9 @@ export function injectSnippet(
   opts: Parameters<typeof snippetTag>[0],
   seed?: Record<string, unknown>
 ): string {
-  if (/data-reviewx\b/.test(html)) return html; // already has it
+  if (/data-reviewsx\b/.test(html)) return html; // already has it
   const seedScript = seed && Object.keys(seed).length
-    ? `<script>window.ReviewX = ${JSON.stringify(seed)};</script>\n`
+    ? `<script>window.ReviewSX = ${JSON.stringify(seed)};</script>\n`
     : "";
   const t = seedScript + snippetTag(opts);
   if (html.includes("</body>")) return html.replace("</body>", `${t}\n</body>`);
@@ -91,7 +91,7 @@ async function walk(dir: string): Promise<string[]> {
 }
 
 /**
- * Produce a hostable copy of a static prototype with the ReviewX widget injected
+ * Produce a hostable copy of a static prototype with the ReviewSX widget injected
  * into every HTML page. The output dir can be served by any static host.
  */
 export async function staticExport(opts: PublishOptions): Promise<PublishResult> {
@@ -139,7 +139,7 @@ export async function staticExport(opts: PublishOptions): Promise<PublishResult>
 
   let total = files.length;
   if (opts.bundleWidget) {
-    await fs.copyFile(reviewxBundlePath(), path.join(out, "reviewx.js"));
+    await fs.copyFile(reviewsxBundlePath(), path.join(out, "reviewsx.js"));
     total++;
   }
   // Disable Jekyll on GitHub Pages so files/dirs starting with "_" are served.
@@ -149,6 +149,6 @@ export async function staticExport(opts: PublishOptions): Promise<PublishResult>
     outDir: out,
     files: total,
     htmlFiles,
-    widgetSrc: opts.bundleWidget ? `${normBase(opts.basePath)}reviewx.js` : opts.cdn || DEFAULT_CDN,
+    widgetSrc: opts.bundleWidget ? `${normBase(opts.basePath)}reviewsx.js` : opts.cdn || DEFAULT_CDN,
   };
 }

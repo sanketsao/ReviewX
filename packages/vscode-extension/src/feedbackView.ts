@@ -15,7 +15,7 @@ interface ItemNode {
   feedback: Feedback;
 }
 
-interface ReviewxConfig {
+interface ReviewSXConfig {
   project?: string;
   publish?: { endpoint?: string };
 }
@@ -36,7 +36,7 @@ export class FeedbackProvider implements vscode.TreeDataProvider<Node> {
   private emitter = new vscode.EventEmitter<Node | undefined>();
   readonly onDidChangeTreeData = this.emitter.event;
   private feedbacks: Feedback[] = [];
-  private config: ReviewxConfig = {};
+  private config: ReviewSXConfig = {};
 
   constructor(private workspaceRoot: string | undefined) {}
 
@@ -55,11 +55,11 @@ export class FeedbackProvider implements vscode.TreeDataProvider<Node> {
     this.emitter.fire(undefined);
   }
 
-  private async readConfig(): Promise<ReviewxConfig> {
+  private async readConfig(): Promise<ReviewSXConfig> {
     if (!this.workspaceRoot) return {};
     try {
       return JSON.parse(
-        await fs.readFile(path.join(this.workspaceRoot, ".reviewx", "config.json"), "utf8")
+        await fs.readFile(path.join(this.workspaceRoot, ".reviewsx", "config.json"), "utf8")
       );
     } catch {
       return {};

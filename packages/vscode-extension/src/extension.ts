@@ -87,7 +87,7 @@ async function startCmd(root: string | undefined): Promise<void> {
     }
     setServerRunning(true);
     await vscode.env.openExternal(vscode.Uri.parse(running.url));
-    void vscode.window.showInformationMessage(`ReviewX running at ${running.url}`);
+    void vscode.window.showInformationMessage(`ReviewSX running at ${running.url}`);
   } catch (err) {
     void vscode.window.showErrorMessage(`Failed to start: ${(err as Error).message}`);
   }
@@ -141,26 +141,26 @@ async function showShareUrl(url: string, via: "tailscale" | "cloudflare" = "tail
   }
 }
 
-interface ReviewxConfig {
+interface ReviewSXConfig {
   project?: string;
   source?: { type?: string; dir?: string };
   publish?: { mode?: string; endpoint?: string };
 }
 
-async function readConfig(root: string): Promise<ReviewxConfig> {
+async function readConfig(root: string): Promise<ReviewSXConfig> {
   try {
-    return JSON.parse(await fs.readFile(path.join(root, ".reviewx", "config.json"), "utf8"));
+    return JSON.parse(await fs.readFile(path.join(root, ".reviewsx", "config.json"), "utf8"));
   } catch {
     return {};
   }
 }
 
-async function writeConfig(root: string, patch: Partial<ReviewxConfig>): Promise<void> {
-  const configDir = path.join(root, ".reviewx");
+async function writeConfig(root: string, patch: Partial<ReviewSXConfig>): Promise<void> {
+  const configDir = path.join(root, ".reviewsx");
   const configFile = path.join(configDir, "config.json");
-  let existing: ReviewxConfig = {};
+  let existing: ReviewSXConfig = {};
   try { existing = JSON.parse(await fs.readFile(configFile, "utf8")); } catch { /* new */ }
-  const merged: ReviewxConfig = {
+  const merged: ReviewSXConfig = {
     ...existing,
     ...patch,
     publish: { ...existing.publish, ...patch.publish },
@@ -169,7 +169,7 @@ async function writeConfig(root: string, patch: Partial<ReviewxConfig>): Promise
   await fs.writeFile(configFile, JSON.stringify(merged, null, 2), "utf8");
 }
 
-// The ReviewX-operated shared inbox. Each project is isolated by a unique
+// The ReviewSX-operated shared inbox. Each project is isolated by a unique
 // project key + TOFU token, so a single deployment serves all builders at
 // essentially zero marginal cost.
 const REVIEWX_INBOX = "https://inbox.reviewsx.app";
@@ -183,7 +183,7 @@ async function setupInboxCmd(root: string | undefined, provider: FeedbackProvide
 
   const options: vscode.QuickPickItem[] = [
     {
-      label: "$(cloud) Use ReviewX hosted inbox",
+      label: "$(cloud) Use ReviewSX hosted inbox",
       description: "Recommended · free for indie builders",
       detail: usingHosted
         ? "✓ Active — all reviewer feedback goes here"
@@ -240,7 +240,7 @@ async function setupInboxCmd(root: string | undefined, provider: FeedbackProvide
     if (deployOption.id === "compose") {
       steps = [
         "1. Have Docker + Docker Compose installed on your server.",
-        "2. Copy  deploy/docker-compose/  from the ReviewX repo to your server.",
+        "2. Copy  deploy/docker-compose/  from the ReviewSX repo to your server.",
         "3. cp .env.example .env  — set POSTGRES_PASSWORD and REVIEWX_ADMIN_TOKEN.",
         "4. docker compose up -d",
         "5. Inbox is live at  http://<your-server>:4400",
@@ -254,7 +254,7 @@ async function setupInboxCmd(root: string | undefined, provider: FeedbackProvide
       steps = [
         "1. Install flyctl:  https://fly.io/docs/hands-on/install-flyctl/",
         "2. fly auth login",
-        "3. From the ReviewX repo root:",
+        "3. From the ReviewSX repo root:",
         "   fly launch --config deploy/fly/fly.toml --dockerfile deploy/fly/Dockerfile",
         "   fly volumes create reviewx_data --size 1 --region iad",
         "   fly secrets set REVIEWX_ADMIN_TOKEN=$(openssl rand -hex 16)",
@@ -265,7 +265,7 @@ async function setupInboxCmd(root: string | undefined, provider: FeedbackProvide
     }
 
     const action = await vscode.window.showInformationMessage(
-      "Self-hosted ReviewX inbox\n\n" + steps +
+      "Self-hosted ReviewSX inbox\n\n" + steps +
       "\n\nData stays entirely on your infrastructure. " +
       "Same Docker image, same API — reviewers and the VS Code extension don't know the difference.",
       { modal: true },
@@ -295,11 +295,11 @@ async function setupInboxCmd(root: string | undefined, provider: FeedbackProvide
     return;
   }
 
-  // "Use ReviewX hosted inbox" — just point at the shared endpoint.
+  // "Use ReviewSX hosted inbox" — just point at the shared endpoint.
   await writeConfig(root, { publish: { endpoint: REVIEWX_INBOX } });
   await provider.refresh();
   void vscode.window.showInformationMessage(
-    `Connected to ReviewX inbox.\n\nYour next Publish will embed this endpoint. ` +
+    `Connected to ReviewSX inbox.\n\nYour next Publish will embed this endpoint. ` +
     `Reviewer feedback will be collected centrally, isolated to your project key.`,
     "Publish now"
   ).then((a) => { if (a === "Publish now") void vscode.commands.executeCommand("protofeedback.publish"); });
@@ -327,7 +327,7 @@ async function gitHubRepo(root: string): Promise<{ owner: string; repo: string }
 }
 
 /** Find a sensible static source: configured dir, else root w/ index.html, else a build dir. */
-async function detectSource(root: string, cfg: ReviewxConfig): Promise<string | undefined> {
+async function detectSource(root: string, cfg: ReviewSXConfig): Promise<string | undefined> {
   const has = async (d: string) => !!(await fs.stat(path.join(d, "index.html")).catch(() => null));
   if (cfg.source?.dir) return path.join(root, cfg.source.dir);
   if (await has(root)) return root;
@@ -384,7 +384,7 @@ async function publishCmd(root: string | undefined): Promise<void> {
     { location: vscode.ProgressLocation.Notification, title: `Publishing to ${repo.owner}/${repo.repo}…` },
     async (progress) => {
       try {
-        const outDir = path.join(os.tmpdir(), `reviewx-publish-${repo.repo}-${Date.now()}`);
+        const outDir = path.join(os.tmpdir(), `reviewsx-publish-${repo.repo}-${Date.now()}`);
         progress.report({ message: "Building…" });
         await staticExport({
           srcDir: source!,
@@ -422,7 +422,7 @@ async function stopCmd(): Promise<void> {
   await running?.close();
   running = undefined;
   setServerRunning(false);
-  void vscode.window.showInformationMessage("ReviewX stopped.");
+  void vscode.window.showInformationMessage("ReviewSX stopped.");
 }
 
 /** Read or generate the project's TOFU token from .protofeedback/secret.json. */

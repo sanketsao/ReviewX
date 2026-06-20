@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# Build the ReviewX shared inbox server.
+# Build the ReviewSX shared inbox server.
 # Run from the MONOREPO ROOT: docker build -f deploy/fly/Dockerfile .
 
 FROM node:22-alpine AS builder

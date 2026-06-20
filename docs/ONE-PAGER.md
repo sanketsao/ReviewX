@@ -1,4 +1,4 @@
-# ReviewX — Functional Overview (One-Pager)
+# ReviewSX — Functional Overview (One-Pager)
 
 **Zero-install feedback & guided-tour overlay for web prototypes.**
 Share a running prototype with a link; reviewers pin threaded comments on the actual UI and follow a guided tour — no clone, no account, no extension.
@@ -30,7 +30,7 @@ Non-developers increasingly build working prototypes (vibe-coded apps, static HT
 
 | Tier | Audience | How | Where data lives |
 |---|---|---|---|
-| **CLI + tunnel** | Live review sessions | `reviewx ./proto --share` → public `trycloudflare.com` URL | Local JSON in the repo |
+| **CLI + tunnel** | Live review sessions | `reviewsx ./proto --share` → public `trycloudflare.com` URL | Local JSON in the repo |
 | **CDN snippet** | Startups | One `<script>` tag (npm/jsDelivr, 10.5 KB gzip) | Browser, or a hosted inbox |
 | **Self-hosted inbox** | Small enterprises | Docker container, `--storage file \| sqlite \| postgres` | **Your database** (BYO-DB) |
 
@@ -50,6 +50,6 @@ Non-developers increasingly build working prototypes (vibe-coded apps, static HT
 ## Status & Roadmap
 
 **Built and verified:** overlay (feedback + tours + personas), CLI/static/proxy server, tunnel sharing, multi-project inbox with three storage adapters, auth (TOFU/admin/JWT), Docker + Compose, CI, 16 unit tests + E2E suites.
-**Next:** publish `reviewx` to npm; deploy a hosted inbox; live-Postgres load validation; VS Code extension polish; webhooks → Jira/Linear/Slack.
+**Next:** publish `reviewsx` to npm; deploy a hosted inbox; live-Postgres load validation; VS Code extension polish; webhooks → Jira/Linear/Slack.
 
-**Repo:** github.com/sanketsao/ReviewX · MIT
+**Repo:** github.com/sanketsao/ReviewSX · MIT

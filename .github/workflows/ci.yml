@@ -18,7 +18,7 @@ jobs:
       # Overlay is bundled with esbuild (no typecheck) — run tsc explicitly.
       - name: Typecheck overlay
         run: npm run typecheck -w @protofeedback/overlay
-      # Builds every workspace (overlay, reviewx snippet, server, vscode ext);
+      # Builds every workspace (overlay, reviewsx snippet, server, vscode ext);
       # the server build is tsc, so it typechecks + emits the test files.
       - name: Build all workspaces
         run: npm run build
