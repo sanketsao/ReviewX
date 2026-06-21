@@ -1,5 +1,13 @@
+# Everything the bundled extension doesn't need at runtime.
+# out/extension.js is the esbuild bundle; dist/ has the overlay bundles.
+
 src/**
-tsconfig.json
-.vscode/**
 node_modules/**
-*.map
+.vscode/**
+tsconfig.json
+build-vsix.mjs
+.gitignore
+.vscodeignore
+**/*.ts
+**/*.map
+*.vsix

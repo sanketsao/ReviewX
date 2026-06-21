@@ -14,6 +14,8 @@ import { createGzip } from "zlib";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 
+// archiver v8: ZipArchive is the correct class (extends Archiver, wires up the
+// zip format + module pipe).
 let ZipArchive;
 try {
   ({ ZipArchive } = require("archiver"));
@@ -108,8 +110,17 @@ try {
 addDir(join(ROOT, "out"), ROOT);
 addDir(join(ROOT, "dist"), ROOT);
 
-output.on("close", () => {
-  console.log(`Created ${outFile} (${(archive.pointer() / 1024).toFixed(0)} KB)`);
+// Resolve only once the OUTPUT stream is fully flushed to disk. Awaiting
+// archive.finalize() alone lets the process exit while the WriteStream still
+// has buffered bytes — truncating larger entries and corrupting the zip
+// ("invalid stored block lengths" / bad offsets on install).
+const done = new Promise((resolve, reject) => {
+  output.on("close", resolve);
+  output.on("error", reject);
+  archive.on("error", reject);
+  archive.on("warning", (e) => { if (e.code !== "ENOENT") reject(e); });
 });
-archive.on("error", (e) => { throw e; });
+
 await archive.finalize();
+await done;
+console.log(`Created ${outFile} (${(archive.pointer() / 1024).toFixed(0)} KB)`);
