@@ -106,34 +106,36 @@ async function shareCmd(): Promise<void> {
     return;
   }
   await vscode.window.withProgress(
-    { location: vscode.ProgressLocation.Notification, title: "Opening public URL via Tailscale Funnel…" },
-    async () => {
+    { location: vscode.ProgressLocation.Notification, title: "Creating a public link to share…" },
+    async (progress) => {
+      // Prefer Tailscale Funnel when available (stable URL). Otherwise fall back
+      // to a Cloudflare quick link, which auto-installs and needs no account —
+      // so this works for everyone with zero setup.
       try {
         tunnel = await startTailscaleTunnel(running!.port);
         void showShareUrl(tunnel.url, "tailscale");
-      } catch (tailscaleErr) {
-        // Tailscale not available — fall back to cloudflared quick tunnel.
-        try {
-          tunnel = await startTunnel(running!.port);
-          void showShareUrl(tunnel.url, "cloudflare");
-        } catch (cfErr) {
-          // Both failed — show the Tailscale error (primary) with a hint.
-          void vscode.window.showErrorMessage(
-            `Could not open a public URL.\n\n` +
-            `Tailscale: ${(tailscaleErr as Error).message}\n\n` +
-            `Cloudflare fallback: ${(cfErr as Error).message}\n\n` +
-            `Install Tailscale (tailscale.com/download) or cloudflared (brew install cloudflared).`
-          );
-        }
+        return;
+      } catch {
+        // fall through to Cloudflare — no scary message; this is the normal path
+        // for anyone without Tailscale.
+      }
+      try {
+        tunnel = await startTunnel(running!.port, undefined, (msg) => progress.report({ message: msg }));
+        void showShareUrl(tunnel.url, "cloudflare");
+      } catch (cfErr) {
+        void vscode.window.showErrorMessage(
+          `Couldn't create a public link. ${(cfErr as Error).message}\n\n` +
+          `Tip: this needs an internet connection. You can also publish to GitHub Pages instead for a permanent link.`
+        );
       }
     }
   );
 }
 
 async function showShareUrl(url: string, via: "tailscale" | "cloudflare" = "tailscale"): Promise<void> {
-  const label = via === "tailscale" ? "Tailscale Funnel (stable)" : "Cloudflare Tunnel (ephemeral)";
+  const label = via === "tailscale" ? "stable link" : "temporary link — active while your prototype is running";
   const pick = await vscode.window.showInformationMessage(
-    `Public URL (${label}): ${url}`,
+    `Share this ${label}: ${url}`,
     "Copy URL",
     "Copy as Markdown"
   );
@@ -187,24 +189,25 @@ async function setupInboxCmd(root: string | undefined, provider: FeedbackProvide
   const options: vscode.QuickPickItem[] = [
     {
       label: "$(cloud) Use ReviewSX hosted inbox",
-      description: "Recommended · free for indie builders",
+      description: "Recommended · free",
       detail: usingHosted
-        ? "✓ Active — all reviewer feedback goes here"
-        : "Feedback from all reviewers collected centrally. Each project is isolated by a unique key.",
+        ? "✓ Active — every reviewer's feedback lands in your inbox and shows up here in VS Code."
+        : "Feedback from all your reviewers is collected in one place — your inbox — and appears here in VS Code, even when reviewers are on different machines. Free, and each project is kept private with its own key.",
     },
     {
-      label: "$(server) Self-host (enterprise)",
-      description: "Run your own inbox — full data control, any region",
-      detail: "Deploy the open-source inbox server on your own infrastructure. One Docker image, one command.",
+      label: "$(server) Keep your data in your own inbox (self-host)",
+      description: "For teams with data-control needs",
+      detail: "Run the inbox on your own server (AWS, Azure, or any Docker host) so all feedback stays inside your network. One Docker image, one command — point ReviewSX at your URL.",
     },
     {
-      label: "$(x) Clear inbox endpoint",
-      description: "Per-browser only — reviewers keep feedback in localStorage",
+      label: "$(x) Don't use an inbox",
+      description: "Quick solo look — feedback stays in the reviewer's browser",
+      detail: "No shared inbox. Reviewers can leave notes, but they're saved only in their own browser and won't come back to you. Fine for a quick self-check.",
     },
   ];
 
   const pick = await vscode.window.showQuickPick(options, {
-    placeHolder: "Where should reviewer feedback be collected?",
+    placeHolder: "Where should your reviewers' feedback be collected?",
   });
   if (!pick) return;
 
