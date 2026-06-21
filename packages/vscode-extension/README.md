@@ -102,10 +102,20 @@ Configure via the **Set up shared inbox** button in the sidebar.
 
 ## Privacy & data
 
-Your prototype's tour and feedback live in `.protofeedback/` in your repo. The
-published copy embeds the tour so reviewers see it without an inbox. Local
-feedback files are never published. With self-hosting, all feedback stays on your
-own infrastructure.
+Your prototype's tour and your own local notes live in `.protofeedback/` in your
+repo. The published copy embeds the tour so reviewers see it without an inbox, and
+those local files are never published.
+
+**Where reviewer feedback is stored depends on the inbox you choose:**
+
+| Inbox | Where feedback lives |
+|---|---|
+| **ReviewSX hosted** (default, free) | On ReviewSX-operated servers (Fly.io), isolated per project by a unique key. Convenient, zero setup. |
+| **Self-hosted** | Entirely on **your own** infrastructure (your AWS/Azure/Docker host + your Postgres). Nothing leaves your network. Best for private repos / IP-sensitive work. |
+| **No inbox** | Only in the reviewer's own browser — it never leaves their machine (and never reaches you). |
+
+If you need full control over where reviewer feedback is stored, self-host the
+open-source inbox — see the repo's `deploy/` folder.
 
 ---
 
