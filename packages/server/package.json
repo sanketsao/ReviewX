@@ -10,7 +10,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsc -p tsconfig.json --watch",
-    "test": "node --test dist/*.test.js"
+    "pretest": "rm -f dist/*.test.js",
+    "test": "tsc -p tsconfig.test.json && node --test --test-force-exit dist/*.test.js"
   },
   "dependencies": {
     "@protofeedback/overlay": "0.1.0",

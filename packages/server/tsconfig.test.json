@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  "comment": "Compiles test files too (the main build excludes them so the Docker image ships no tests).",
+  "exclude": []
+}

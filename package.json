@@ -15,6 +15,7 @@
     "build:snippet": "npm run build -w reviewsx",
     "build:server": "npm run build -w @protofeedback/server",
     "test": "npm run test --workspaces --if-present",
+    "verify": "node scripts/verify.mjs",
     "pf": "node packages/server/dist/cli.js"
   },
   "devDependencies": {
