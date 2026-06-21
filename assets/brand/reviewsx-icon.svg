@@ -1,0 +1,52 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5847F0"/>
+      <stop offset="0.55" stop-color="#7B3DF2"/>
+      <stop offset="1" stop-color="#9A47FF"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.28" cy="0.22" r="0.9">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.22"/>
+      <stop offset="0.5" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="pin" x1="0" y1="0" x2="0.4" y2="1">
+      <stop offset="0" stop-color="#FFC24B"/>
+      <stop offset="1" stop-color="#FF8A1E"/>
+    </linearGradient>
+    <filter id="pinShadow" x="-60%" y="-60%" width="220%" height="220%">
+      <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#2A1A55" flood-opacity="0.35"/>
+    </filter>
+    <filter id="winShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="18" flood-color="#1E1248" flood-opacity="0.28"/>
+    </filter>
+  </defs>
+
+  <!-- tile -->
+  <rect x="0" y="0" width="512" height="512" rx="116" fill="url(#tile)"/>
+  <rect x="0" y="0" width="512" height="512" rx="116" fill="url(#glow)"/>
+
+  <!-- prototype window -->
+  <g filter="url(#winShadow)">
+    <rect x="96" y="120" width="264" height="216" rx="26" fill="#FFFFFF"/>
+    <!-- window controls -->
+    <circle cx="128" cy="152" r="7.5" fill="#D9D3F4"/>
+    <circle cx="152" cy="152" r="7.5" fill="#D9D3F4"/>
+    <circle cx="176" cy="152" r="7.5" fill="#D9D3F4"/>
+    <!-- content lines -->
+    <rect x="124" y="196" width="150" height="15" rx="7.5" fill="#ECE8FB"/>
+    <rect x="124" y="230" width="196" height="15" rx="7.5" fill="#ECE8FB"/>
+    <rect x="124" y="264" width="120" height="15" rx="7.5" fill="#ECE8FB"/>
+    <rect x="124" y="298" width="168" height="15" rx="7.5" fill="#ECE8FB"/>
+  </g>
+
+  <!-- feedback pin: X marks the spot -->
+  <g filter="url(#pinShadow)">
+    <path d="M372 318 L330 250 A58 58 0 1 1 414 250 Z" fill="url(#pin)"/>
+    <circle cx="372" cy="222" r="58" fill="url(#pin)"/>
+    <!-- the X -->
+    <g stroke="#FFFFFF" stroke-width="17" stroke-linecap="round">
+      <line x1="348" y1="198" x2="396" y2="246"/>
+      <line x1="396" y1="198" x2="348" y2="246"/>
+    </g>
+  </g>
+</svg>

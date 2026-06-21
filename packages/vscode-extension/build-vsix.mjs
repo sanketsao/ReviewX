@@ -100,6 +100,10 @@ try {
   statSync(join(ROOT, "README.md"));
   archive.file(join(ROOT, "README.md"), { name: "extension/README.md" });
 } catch { /* no README — skip */ }
+// Add images/ (icon + screenshots referenced by package.json / README)
+try {
+  if (statSync(join(ROOT, "images")).isDirectory()) addDir(join(ROOT, "images"), ROOT);
+} catch { /* no images dir — skip */ }
 // Add out/ and dist/
 addDir(join(ROOT, "out"), ROOT);
 addDir(join(ROOT, "dist"), ROOT);

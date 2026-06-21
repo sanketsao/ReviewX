@@ -12,6 +12,11 @@
     "url": "https://github.com/sanketsao/ReviewSX.git"
   },
   "license": "MIT",
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#7B3DF2",
+    "theme": "dark"
+  },
   "categories": [
     "Other",
     "Visualization"

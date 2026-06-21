@@ -1,0 +1,52 @@
+<svg width="1280" height="360" viewBox="0 0 1280 360" xmlns="http://www.w3.org/2000/svg">
+  <!-- ICON -->
+  <svg x="44" y="40" width="280" height="280" viewBox="0 0 512 512">
+    <defs>
+      <linearGradient id="tile2" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#5847F0"/>
+        <stop offset="0.55" stop-color="#7B3DF2"/>
+        <stop offset="1" stop-color="#9A47FF"/>
+      </linearGradient>
+      <radialGradient id="glow2" cx="0.28" cy="0.22" r="0.9">
+        <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.22"/>
+        <stop offset="0.5" stop-color="#FFFFFF" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="pin2" x1="0" y1="0" x2="0.4" y2="1">
+        <stop offset="0" stop-color="#FFC24B"/>
+        <stop offset="1" stop-color="#FF8A1E"/>
+      </linearGradient>
+      <filter id="pinShadow2" x="-60%" y="-60%" width="220%" height="220%">
+        <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#2A1A55" flood-opacity="0.35"/>
+      </filter>
+      <filter id="winShadow2" x="-30%" y="-30%" width="160%" height="160%">
+        <feDropShadow dx="0" dy="10" stdDeviation="18" flood-color="#1E1248" flood-opacity="0.28"/>
+      </filter>
+    </defs>
+    <rect x="0" y="0" width="512" height="512" rx="116" fill="url(#tile2)"/>
+    <rect x="0" y="0" width="512" height="512" rx="116" fill="url(#glow2)"/>
+    <g filter="url(#winShadow2)">
+      <rect x="96" y="120" width="264" height="216" rx="26" fill="#FFFFFF"/>
+      <circle cx="128" cy="152" r="7.5" fill="#D9D3F4"/>
+      <circle cx="152" cy="152" r="7.5" fill="#D9D3F4"/>
+      <circle cx="176" cy="152" r="7.5" fill="#D9D3F4"/>
+      <rect x="124" y="196" width="150" height="15" rx="7.5" fill="#ECE8FB"/>
+      <rect x="124" y="230" width="196" height="15" rx="7.5" fill="#ECE8FB"/>
+      <rect x="124" y="264" width="120" height="15" rx="7.5" fill="#ECE8FB"/>
+      <rect x="124" y="298" width="168" height="15" rx="7.5" fill="#ECE8FB"/>
+    </g>
+    <g filter="url(#pinShadow2)">
+      <path d="M372 318 L330 250 A58 58 0 1 1 414 250 Z" fill="url(#pin2)"/>
+      <circle cx="372" cy="222" r="58" fill="url(#pin2)"/>
+      <g stroke="#FFFFFF" stroke-width="17" stroke-linecap="round">
+        <line x1="348" y1="198" x2="396" y2="246"/>
+        <line x1="396" y1="198" x2="348" y2="246"/>
+      </g>
+    </g>
+  </svg>
+
+  <!-- WORDMARK -->
+  <text x="362" y="206" font-family="MontBlack" font-size="118" letter-spacing="-3" fill="#211B3D">reviews<tspan fill="#FF8A1E">x</tspan></text>
+
+  <!-- 4 P's TAGLINE -->
+  <text x="366" y="262" font-family="InterSemi" font-size="24" letter-spacing="4.5" fill="#6F6890">PROTOTYPE&#160;&#160;·&#160;&#160;PUBLISH&#160;&#160;·&#160;&#160;POSITION&#160;&#160;·&#160;&#160;PROCURE</text>
+</svg>
