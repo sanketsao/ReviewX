@@ -3,7 +3,7 @@ import * as path from "path";
 import { promises as fs } from "fs";
 import type { Feedback } from "@protofeedback/server";
 
-type Node = GroupNode | ItemNode;
+type Node = GroupNode | ItemNode | ActionsGroupNode | ActionNode;
 interface GroupNode {
   kind: "group";
   label: string;
@@ -13,6 +13,15 @@ interface GroupNode {
 interface ItemNode {
   kind: "item";
   feedback: Feedback;
+}
+interface ActionsGroupNode {
+  kind: "actionsGroup";
+}
+interface ActionNode {
+  kind: "action";
+  label: string;
+  icon: string;
+  command: string;
 }
 
 interface ReviewSXConfig {
@@ -37,8 +46,15 @@ export class FeedbackProvider implements vscode.TreeDataProvider<Node> {
   readonly onDidChangeTreeData = this.emitter.event;
   private feedbacks: Feedback[] = [];
   private config: ReviewSXConfig = {};
+  private serverRunning = false;
 
   constructor(private workspaceRoot: string | undefined) {}
+
+  /** Reflect server state so the in-tree action rows show Start vs Stop/Share. */
+  setServerRunning(value: boolean): void {
+    this.serverRunning = value;
+    this.emitter.fire(undefined);
+  }
 
   private get file(): string | undefined {
     return this.workspaceRoot
@@ -104,6 +120,21 @@ export class FeedbackProvider implements vscode.TreeDataProvider<Node> {
   }
 
   getTreeItem(node: Node): vscode.TreeItem {
+    if (node.kind === "actionsGroup") {
+      const item = new vscode.TreeItem("Actions", vscode.TreeItemCollapsibleState.Expanded);
+      item.iconPath = new vscode.ThemeIcon("rocket");
+      item.contextValue = "actionsGroup";
+      return item;
+    }
+
+    if (node.kind === "action") {
+      const item = new vscode.TreeItem(node.label, vscode.TreeItemCollapsibleState.None);
+      item.iconPath = new vscode.ThemeIcon(node.icon);
+      item.command = { command: node.command, title: node.label };
+      item.contextValue = "actionItem";
+      return item;
+    }
+
     if (node.kind === "group") {
       const isOpen = node.status === "open";
       const label = isOpen
@@ -151,16 +182,40 @@ export class FeedbackProvider implements vscode.TreeDataProvider<Node> {
     if (!node) {
       const open = this.feedbacks.filter((f) => f.status === "open");
       const resolved = this.feedbacks.filter((f) => f.status === "resolved");
-      const groups: GroupNode[] = [
+      const allGroups: GroupNode[] = [
         { kind: "group", label: "Open", status: "open", items: open },
         { kind: "group", label: "Resolved", status: "resolved", items: resolved },
       ];
-      return groups.filter((g) => g.items.length > 0);
+      const groups = allGroups.filter((g) => g.items.length > 0);
+
+      // When there's no feedback, the empty-view welcome (with its own buttons)
+      // shows — so leave the tree empty. Once feedback fills the list, the
+      // welcome disappears, so surface the actions as labeled rows below it.
+      if (groups.length === 0) return [];
+      return [...groups, { kind: "actionsGroup" }];
     }
     if (node.kind === "group") {
       return node.items.map((feedback) => ({ kind: "item", feedback }));
     }
+    if (node.kind === "actionsGroup") {
+      return this.actionNodes();
+    }
     return [];
+  }
+
+  private actionNodes(): ActionNode[] {
+    const actions: ActionNode[] = [];
+    if (this.serverRunning) {
+      actions.push({ kind: "action", label: "Share via Tailscale Funnel", icon: "broadcast", command: "protofeedback.share" });
+    } else {
+      actions.push({ kind: "action", label: "Start prototype with overlay", icon: "play", command: "protofeedback.start" });
+    }
+    actions.push({ kind: "action", label: "Publish to GitHub Pages", icon: "cloud-upload", command: "protofeedback.publish" });
+    actions.push({ kind: "action", label: "Set up shared inbox", icon: "server", command: "protofeedback.setupInbox" });
+    if (this.serverRunning) {
+      actions.push({ kind: "action", label: "Stop", icon: "debug-stop", command: "protofeedback.stop" });
+    }
+    return actions;
   }
 
   getFeedbackById(id: string): Feedback | undefined {

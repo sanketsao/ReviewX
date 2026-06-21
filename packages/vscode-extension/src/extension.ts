@@ -9,9 +9,11 @@ import { TourEditor } from "./tourEditor";
 
 let running: RunningServer | undefined;
 let tunnel: Tunnel | undefined;
+let feedbackProvider: FeedbackProvider | undefined;
 
 function setServerRunning(value: boolean): void {
   void vscode.commands.executeCommand("setContext", "protofeedback.serverRunning", value);
+  feedbackProvider?.setServerRunning(value);
 }
 
 function workspaceRoot(): string | undefined {
@@ -22,6 +24,7 @@ export function activate(context: vscode.ExtensionContext): void {
   setServerRunning(false);
   const root = workspaceRoot();
   const provider = new FeedbackProvider(root);
+  feedbackProvider = provider;
   context.subscriptions.push(
     vscode.window.registerTreeDataProvider("protofeedback.feedback", provider)
   );
