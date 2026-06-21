@@ -1,3 +1,5 @@
+![ReviewSX — share prototypes, get feedback fast](images/lockup.png)
+
 # ReviewSX — share prototypes, get feedback fast
 
 **The 4 P's of product building:** **Prototype** → **Publish** → **Position** → **Procure feedback.**
