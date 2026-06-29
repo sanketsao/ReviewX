@@ -1,0 +1,13 @@
+{
+  "name": "reviewsx",
+  "description": "Add the ReviewSX feedback + guided-tour overlay to any web prototype so it can be shared for review. Injects the CDN snippet for the project's framework.",
+  "version": "0.1.0",
+  "author": {
+    "name": "ReviewSX",
+    "url": "https://reviewsx.app"
+  },
+  "homepage": "https://github.com/sanketsao/ReviewsX",
+  "repository": "https://github.com/sanketsao/ReviewsX",
+  "license": "MIT",
+  "keywords": ["prototype", "feedback", "review", "tour", "annotations", "share", "vibe-coding"]
+}
