@@ -18,7 +18,7 @@ await build({
   minify: true,
   legalComments: "none",
   banner: {
-    js: "/* reviewsx — zero-install feedback + guided-tour overlay. MIT. https://github.com/sanketsao/ReviewSX */",
+    js: "/* reviewsx — zero-install feedback + guided-tour overlay. MIT. https://github.com/sanketsao/ReviewsX */",
   },
 });
 

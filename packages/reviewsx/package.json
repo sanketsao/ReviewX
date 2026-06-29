@@ -13,13 +13,13 @@
     "ux",
     "shadow-dom"
   ],
-  "homepage": "https://github.com/sanketsao/ReviewSX#readme",
+  "homepage": "https://github.com/sanketsao/ReviewsX#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sanketsao/ReviewSX.git"
+    "url": "git+https://github.com/sanketsao/ReviewsX.git"
   },
   "bugs": {
-    "url": "https://github.com/sanketsao/ReviewSX/issues"
+    "url": "https://github.com/sanketsao/ReviewsX/issues"
   },
   "type": "commonjs",
   "main": "dist/reviewsx.js",
