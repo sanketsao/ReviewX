@@ -14,8 +14,11 @@ async function revealBanner(page: import("@playwright/test").Page) {
 
 test("overlay mounts on the prototype", async ({ page }) => {
   await page.goto("/");
-  // The overlay host + shadow root render the toolbar/launcher.
-  await expect(page.locator(".pf-banner, .pf-launcher").first()).toBeVisible({ timeout: 10_000 });
+  // The overlay shows its toolbar (banner) by default; the launcher dot is the
+  // collapsed state and stays hidden while the banner is open.
+  await expect(page.locator(".pf-banner")).toBeVisible({ timeout: 10_000 });
+  // And the feedback CTA is reachable through the open shadow root.
+  await expect(page.locator(".pf-cta.feedback")).toBeVisible();
 });
 
 test("reviewer can pin feedback and it lands in the inbox", async ({ page }) => {
