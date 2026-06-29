@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ReviewSX E2E test prototype</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 640px; margin: 40px auto; }
+    button { padding: 8px 16px; }
+  </style>
+</head>
+<body>
+  <h1 id="headline">Welcome to the prototype</h1>
+  <p id="para">A sample page the overlay can pin feedback onto.</p>
+  <button id="cta">Sign up</button>
+
+  <!-- Reviewer copy of the snippet, pointed at the local test inbox. -->
+  <script
+    src="/reviewsx.js"
+    data-reviewsx
+    data-project="e2e-test"
+    data-endpoint="http://127.0.0.1:4500"
+  ></script>
+</body>
+</html>
